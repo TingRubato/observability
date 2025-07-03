@@ -6,19 +6,6 @@ import { parseString } from 'xml2js';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-// --- Argument parsing ---
-const args = process.argv.slice(2);
-let xmlFile, jsonFile;
-
-if (args.includes('--help') || args.includes('-h')) {
-  console.log('Usage: node offload-xml-to-json.js [input.xml] [output.json]');
-  console.log('Defaults: input = ../data/vtc200.xml, output = ../data/vtc200.json');
-  process.exit(0);
-}
-
-xmlFile = args[0] ? path.resolve(__dirname, args[0]) : path.join(__dirname, '../data/vtc200.xml');
-jsonFile = args[1] ? path.resolve(__dirname, args[1]) : path.join(__dirname, '../data/vtc200.json');
-
 // Helper function to convert string values to appropriate types
 function convertValue(value) {
   if (value === 'UNAVAILABLE') return null;
@@ -125,66 +112,103 @@ function transformComponents(componentStreams) {
   return components;
 }
 
-fs.readFile(xmlFile, 'utf8', (err, xmlData) => {
-  if (err) {
-    console.error('Error reading XML file:', err);
-    process.exit(1);
-  }
-  
-  parseString(xmlData, { explicitArray: true }, (err, result) => {
-    if (err) {
-      console.error('Error parsing XML:', err);
-      process.exit(1);
-    }
-    
-    try {
-      const mtconnectStreams = result.MTConnectStreams;
-      const header = mtconnectStreams.Header[0];
-      const deviceStream = mtconnectStreams.Streams[0].DeviceStream[0];
+// Main conversion function that can be called from other modules
+export async function convertXmlToJson(xmlFile, jsonFile) {
+  return new Promise((resolve, reject) => {
+    fs.readFile(xmlFile, 'utf8', (err, xmlData) => {
+      if (err) {
+        reject(new Error(`Error reading XML file: ${err.message}`));
+        return;
+      }
       
-      // Transform header
-      const transformedHeader = extractAttributes(header);
-      
-      // Transform device
-      const deviceAttrs = extractAttributes(deviceStream);
-      const transformedDevice = {
-        name: deviceAttrs.name,
-        uuid: deviceAttrs.uuid,
-        components: transformComponents(deviceStream.ComponentStream)
-      };
-      
-      // Extract metadata
-      const rootAttrs = extractAttributes(mtconnectStreams);
-      const metadata = {
-        schema: rootAttrs.xmlns || 'urn:mtconnect.org:MTConnectStreams:1.5',
-        schemaLocation: mtconnectStreams.$['xsi:schemaLocation'] || 'http://schemas.mtconnect.org/schemas/MTConnectStreams_1.5.xsd'
-      };
-      
-      // Build final structure
-      const transformedData = {
-        header: transformedHeader,
-        device: transformedDevice,
-        metadata: metadata
-      };
-      
-      fs.writeFile(jsonFile, JSON.stringify(transformedData, null, 2), (err) => {
+      parseString(xmlData, { explicitArray: true }, (err, result) => {
         if (err) {
-          console.error('Error writing JSON file:', err);
-          process.exit(1);
+          reject(new Error(`Error parsing XML: ${err.message}`));
+          return;
         }
-        console.log('Successfully converted XML to normalized JSON:', jsonFile);
-        console.log(`- Components: ${Object.keys(transformedDevice.components).length}`);
-        console.log(`- Total data items: ${Object.values(transformedDevice.components).reduce((sum, comp) => {
-          return sum + 
-            (comp.samples ? Object.keys(comp.samples).length : 0) +
-            (comp.events ? Object.keys(comp.events).length : 0) +
-            (comp.conditions ? Object.keys(comp.conditions).length : 0);
-        }, 0)}`);
+        
+        try {
+          const mtconnectStreams = result.MTConnectStreams;
+          const header = mtconnectStreams.Header[0];
+          const deviceStream = mtconnectStreams.Streams[0].DeviceStream[0];
+          
+          // Transform header
+          const transformedHeader = extractAttributes(header);
+          
+          // Transform device
+          const deviceAttrs = extractAttributes(deviceStream);
+          const transformedDevice = {
+            name: deviceAttrs.name,
+            uuid: deviceAttrs.uuid,
+            components: transformComponents(deviceStream.ComponentStream)
+          };
+          
+          // Extract metadata
+          const rootAttrs = extractAttributes(mtconnectStreams);
+          const metadata = {
+            schema: rootAttrs.xmlns || 'urn:mtconnect.org:MTConnectStreams:1.5',
+            schemaLocation: mtconnectStreams.$['xsi:schemaLocation'] || 'http://schemas.mtconnect.org/schemas/MTConnectStreams_1.5.xsd'
+          };
+          
+          // Build final structure
+          const transformedData = {
+            header: transformedHeader,
+            device: transformedDevice,
+            metadata: metadata
+          };
+          
+          fs.writeFile(jsonFile, JSON.stringify(transformedData, null, 2), (err) => {
+            if (err) {
+              reject(new Error(`Error writing JSON file: ${err.message}`));
+              return;
+            }
+            
+            const stats = {
+              file: jsonFile,
+              components: Object.keys(transformedDevice.components).length,
+              totalDataItems: Object.values(transformedDevice.components).reduce((sum, comp) => {
+                return sum + 
+                  (comp.samples ? Object.keys(comp.samples).length : 0) +
+                  (comp.events ? Object.keys(comp.events).length : 0) +
+                  (comp.conditions ? Object.keys(comp.conditions).length : 0);
+              }, 0)
+            };
+            
+            resolve(stats);
+          });
+          
+        } catch (transformError) {
+          reject(new Error(`Error transforming XML data: ${transformError.message}`));
+        }
       });
-      
-    } catch (transformError) {
-      console.error('Error transforming XML data:', transformError);
-      process.exit(1);
-    }
+    });
   });
-}); 
+}
+
+// CLI execution - only run if this file is executed directly
+if (import.meta.url === `file://${process.argv[1]}`) {
+  // --- Argument parsing ---
+  const args = process.argv.slice(2);
+  let xmlFile, jsonFile;
+
+  if (args.includes('--help') || args.includes('-h')) {
+    console.log('Usage: node offload-xml-to-json.js [input.xml] [output.json]');
+    console.log('Defaults: input = ../data/vtc300c.xml, output = ../data/vtc300c.json');
+    process.exit(0);
+  }
+
+  xmlFile = args[0] ? path.resolve(__dirname, args[0]) : path.join(__dirname, '../data/vtc300c.xml');
+  jsonFile = args[1] ? path.resolve(__dirname, args[1]) : path.join(__dirname, '../data/vtc300c.json');
+
+  // Execute conversion
+  convertXmlToJson(xmlFile, jsonFile)
+    .then(stats => {
+      console.log('Successfully converted XML to normalized JSON:', stats.file);
+      console.log(`- Components: ${stats.components}`);
+      console.log(`- Total data items: ${stats.totalDataItems}`);
+    })
+    .catch(error => {
+      console.error('Error:', error.message);
+      process.exit(1);
+    });
+}

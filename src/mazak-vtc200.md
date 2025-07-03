@@ -41,11 +41,13 @@ Object.entries(rawData.device.components).forEach(([componentId, component]) => 
   if (component.events) {
     Object.entries(component.events).forEach(([itemId, event]) => {
       if (event.value !== null && event.value !== undefined) {
+        // Use number if possible, otherwise string
+        const num = Number(event.value);
         events.push({
           component: componentId,
           item: itemId,
           ts: new Date(event.timestamp),
-          value: String(event.value)
+          value: (!isNaN(num) && isFinite(num)) ? num : String(event.value)
         });
       }
     });
