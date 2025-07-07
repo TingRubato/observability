@@ -1,0 +1,978 @@
+{
+  "@attributes": {
+    "{http://www.w3.org/2001/XMLSchema-instance}schemaLocation": "urn:mtconnect.org:MTConnectStreams:1.5 http://schemas.mtconnect.org/schemas/MTConnectStreams_1.5.xsd"
+  },
+  "Header": {
+    "@attributes": {
+      "creationTime": "2025-07-07T14:30:10Z",
+      "sender": "apm-86xxx-ie4000",
+      "instanceId": "1720551353",
+      "version": "1.5.0.14",
+      "bufferSize": "1024",
+      "nextSequence": "6628181",
+      "firstSequence": "6628081",
+      "lastSequence": "6629104"
+    }
+  },
+  "Streams": {
+    "DeviceStream": {
+      "@attributes": {
+        "name": "Mazak",
+        "uuid": "Mazak"
+      },
+      "ComponentStream": [
+        {
+          "@attributes": {
+            "component": "Controller",
+            "name": "controller",
+            "componentId": "cont"
+          },
+          "Samples": {
+            "AccumulatedTime": [
+              {
+                "@attributes": {
+                  "dataItemId": "auto_time",
+                  "timestamp": "2025-07-07T13:26:07.540934Z",
+                  "sequence": "6628093",
+                  "subType": "x:AUTO"
+                },
+                "#text": "1013787"
+              },
+              {
+                "@attributes": {
+                  "dataItemId": "auto_time",
+                  "timestamp": "2025-07-07T13:26:09.844662Z",
+                  "sequence": "6628098",
+                  "subType": "x:AUTO"
+                },
+                "#text": "1013790"
+              },
+              {
+                "@attributes": {
+                  "dataItemId": "auto_time",
+                  "timestamp": "2025-07-07T13:26:12.148592Z",
+                  "sequence": "6628103",
+                  "subType": "x:AUTO"
+                },
+                "#text": "1013792"
+              },
+              {
+                "@attributes": {
+                  "dataItemId": "auto_time",
+                  "timestamp": "2025-07-07T13:26:14.452636Z",
+                  "sequence": "6628109",
+                  "subType": "x:AUTO"
+                },
+                "#text": "1013794"
+              },
+              {
+                "@attributes": {
+                  "dataItemId": "auto_time",
+                  "timestamp": "2025-07-07T13:26:16.756569Z",
+                  "sequence": "6628116",
+                  "subType": "x:AUTO"
+                },
+                "#text": "1013797"
+              },
+              {
+                "@attributes": {
+                  "dataItemId": "auto_time",
+                  "timestamp": "2025-07-07T13:26:19.060310Z",
+                  "sequence": "6628121",
+                  "subType": "x:AUTO"
+                },
+                "#text": "1013799"
+              },
+              {
+                "@attributes": {
+                  "dataItemId": "auto_time",
+                  "timestamp": "2025-07-07T13:26:21.392743Z",
+                  "sequence": "6628128",
+                  "subType": "x:AUTO"
+                },
+                "#text": "1013801"
+              },
+              {
+                "@attributes": {
+                  "dataItemId": "auto_time",
+                  "timestamp": "2025-07-07T13:26:23.696371Z",
+                  "sequence": "6628132",
+                  "subType": "x:AUTO"
+                },
+                "#text": "1013804"
+              },
+              {
+                "@attributes": {
+                  "dataItemId": "auto_time",
+                  "timestamp": "2025-07-07T13:26:26.000185Z",
+                  "sequence": "6628138",
+                  "subType": "x:AUTO"
+                },
+                "#text": "1013806"
+              },
+              {
+                "@attributes": {
+                  "dataItemId": "auto_time",
+                  "timestamp": "2025-07-07T13:26:28.304203Z",
+                  "sequence": "6628146",
+                  "subType": "x:AUTO"
+                },
+                "#text": "1013807"
+              },
+              {
+                "@attributes": {
+                  "dataItemId": "cut_time",
+                  "timestamp": "2025-07-07T13:26:21.392743Z",
+                  "sequence": "6628129",
+                  "subType": "x:CUT"
+                },
+                "#text": "20185015"
+              },
+              {
+                "@attributes": {
+                  "dataItemId": "cut_time",
+                  "timestamp": "2025-07-07T13:26:23.696371Z",
+                  "sequence": "6628133",
+                  "subType": "x:CUT"
+                },
+                "#text": "20185017"
+              },
+              {
+                "@attributes": {
+                  "dataItemId": "cut_time",
+                  "timestamp": "2025-07-07T13:26:26.000185Z",
+                  "sequence": "6628139",
+                  "subType": "x:CUT"
+                },
+                "#text": "20185019"
+              },
+              {
+                "@attributes": {
+                  "dataItemId": "total_time",
+                  "timestamp": "2025-07-07T13:27:10.587770Z",
+                  "sequence": "6628159",
+                  "subType": "x:TOTAL"
+                },
+                "#text": "15855143"
+              }
+            ]
+          },
+          "Condition": {
+            "Fault": {
+              "@attributes": {
+                "dataItemId": "logic_cond",
+                "timestamp": "2025-07-07T13:26:46.778700Z",
+                "sequence": "6628158",
+                "nativeCode": "230",
+                "nativeSeverity": "90",
+                "type": "LOGIC_PROGRAM"
+              },
+              "#text": "ILLEGAL MMS UNIT"
+            },
+            "Normal": {
+              "@attributes": {
+                "dataItemId": "logic_cond",
+                "timestamp": "2025-07-07T13:27:48.799719Z",
+                "sequence": "6628163",
+                "type": "LOGIC_PROGRAM"
+              }
+            }
+          }
+        },
+        {
+          "@attributes": {
+            "component": "Path",
+            "name": "path",
+            "componentId": "path1"
+          },
+          "Samples": {
+            "PathFeedrate": [
+              {
+                "@attributes": {
+                  "dataItemId": "Fact",
+                  "timestamp": "2025-07-07T13:26:07.540934Z",
+                  "sequence": "6628091",
+                  "subType": "ACTUAL"
+                },
+                "#text": "11.91666667"
+              },
+              {
+                "@attributes": {
+                  "dataItemId": "Fact",
+                  "timestamp": "2025-07-07T13:26:16.756569Z",
+                  "sequence": "6628115",
+                  "subType": "ACTUAL"
+                },
+                "#text": "11.81666667"
+              },
+              {
+                "@attributes": {
+                  "dataItemId": "Fact",
+                  "timestamp": "2025-07-07T13:26:21.392743Z",
+                  "sequence": "6628127",
+                  "subType": "ACTUAL"
+                },
+                "#text": "0.7833333333"
+              },
+              {
+                "@attributes": {
+                  "dataItemId": "Fact",
+                  "timestamp": "2025-07-07T13:26:26.000185Z",
+                  "sequence": "6628137",
+                  "subType": "ACTUAL"
+                },
+                "#text": "0"
+              },
+              {
+                "@attributes": {
+                  "dataItemId": "Fact",
+                  "timestamp": "2025-07-07T13:26:30.608238Z",
+                  "sequence": "6628151",
+                  "subType": "ACTUAL"
+                },
+                "#text": "98.43333333"
+              },
+              {
+                "@attributes": {
+                  "dataItemId": "Fact",
+                  "timestamp": "2025-07-07T13:26:32.911954Z",
+                  "sequence": "6628157",
+                  "subType": "ACTUAL"
+                },
+                "#text": "0"
+              },
+              {
+                "@attributes": {
+                  "dataItemId": "Fact",
+                  "timestamp": "2025-07-07T13:27:48.801040Z",
+                  "sequence": "6628174",
+                  "subType": "ACTUAL"
+                },
+                "#text": "11.85"
+              }
+            ]
+          },
+          "Events": {
+            "PathFeedrateOverride": [
+              {
+                "@attributes": {
+                  "dataItemId": "Frapidovr",
+                  "timestamp": "2025-07-07T13:25:55.992030Z",
+                  "sequence": "6628082",
+                  "subType": "RAPID"
+                },
+                "#text": "6"
+              },
+              {
+                "@attributes": {
+                  "dataItemId": "Frapidovr",
+                  "timestamp": "2025-07-07T13:26:30.608238Z",
+                  "sequence": "6628152",
+                  "subType": "RAPID"
+                },
+                "#text": "100"
+              },
+              {
+                "@attributes": {
+                  "dataItemId": "Frapidovr",
+                  "timestamp": "2025-07-07T13:27:39.285225Z",
+                  "sequence": "6628161",
+                  "subType": "RAPID"
+                },
+                "#text": "6"
+              }
+            ],
+            "Execution": [
+              {
+                "@attributes": {
+                  "dataItemId": "execution",
+                  "timestamp": "2025-07-07T13:25:55.992030Z",
+                  "sequence": "6628081"
+                },
+                "#text": "READY"
+              },
+              {
+                "@attributes": {
+                  "dataItemId": "execution",
+                  "timestamp": "2025-07-07T13:26:07.540934Z",
+                  "sequence": "6628090"
+                },
+                "#text": "ACTIVE"
+              },
+              {
+                "@attributes": {
+                  "dataItemId": "execution",
+                  "timestamp": "2025-07-07T13:26:26.000185Z",
+                  "sequence": "6628136"
+                },
+                "#text": "FEED_HOLD"
+              },
+              {
+                "@attributes": {
+                  "dataItemId": "execution",
+                  "timestamp": "2025-07-07T13:26:28.304203Z",
+                  "sequence": "6628144"
+                },
+                "#text": "READY"
+              },
+              {
+                "@attributes": {
+                  "dataItemId": "execution",
+                  "timestamp": "2025-07-07T13:26:30.608238Z",
+                  "sequence": "6628150"
+                },
+                "#text": "STOPPED"
+              },
+              {
+                "@attributes": {
+                  "dataItemId": "execution",
+                  "timestamp": "2025-07-07T13:27:39.285225Z",
+                  "sequence": "6628160"
+                },
+                "#text": "READY"
+              },
+              {
+                "@attributes": {
+                  "dataItemId": "execution",
+                  "timestamp": "2025-07-07T13:27:48.801040Z",
+                  "sequence": "6628173"
+                },
+                "#text": "ACTIVE"
+              }
+            ],
+            "ControllerMode": [
+              {
+                "@attributes": {
+                  "dataItemId": "mode",
+                  "timestamp": "2025-07-07T13:25:55.992030Z",
+                  "sequence": "6628083"
+                },
+                "#text": "AUTOMATIC"
+              },
+              {
+                "@attributes": {
+                  "dataItemId": "mode",
+                  "timestamp": "2025-07-07T13:26:30.608238Z",
+                  "sequence": "6628153"
+                },
+                "#text": "MANUAL"
+              },
+              {
+                "@attributes": {
+                  "dataItemId": "mode",
+                  "timestamp": "2025-07-07T13:27:39.285225Z",
+                  "sequence": "6628162"
+                },
+                "#text": "AUTOMATIC"
+              }
+            ],
+            "Unit": [
+              {
+                "@attributes": {
+                  "dataItemId": "unitNum",
+                  "timestamp": "2025-07-07T13:26:07.540934Z",
+                  "sequence": "6628092"
+                },
+                "#text": "6"
+              },
+              {
+                "@attributes": {
+                  "dataItemId": "unitNum",
+                  "timestamp": "2025-07-07T13:26:28.304203Z",
+                  "sequence": "6628145"
+                },
+                "#text": "0"
+              },
+              {
+                "@attributes": {
+                  "dataItemId": "unitNum",
+                  "timestamp": "2025-07-07T13:27:48.801040Z",
+                  "sequence": "6628175"
+                },
+                "#text": "6"
+              }
+            ]
+          }
+        },
+        {
+          "@attributes": {
+            "component": "Linear",
+            "name": "X",
+            "componentId": "x"
+          },
+          "Samples": {
+            "Position": [
+              {
+                "@attributes": {
+                  "dataItemId": "Xabs",
+                  "timestamp": "2025-07-07T13:26:07.540934Z",
+                  "sequence": "6628084",
+                  "subType": "ACTUAL"
+                },
+                "#text": "41.86174"
+              },
+              {
+                "@attributes": {
+                  "dataItemId": "Xabs",
+                  "timestamp": "2025-07-07T13:26:09.844662Z",
+                  "sequence": "6628094",
+                  "subType": "ACTUAL"
+                },
+                "#text": "32.59074"
+              },
+              {
+                "@attributes": {
+                  "dataItemId": "Xabs",
+                  "timestamp": "2025-07-07T13:26:12.148592Z",
+                  "sequence": "6628099",
+                  "subType": "ACTUAL"
+                },
+                "#text": "23.31847"
+              },
+              {
+                "@attributes": {
+                  "dataItemId": "Xabs",
+                  "timestamp": "2025-07-07T13:26:14.452636Z",
+                  "sequence": "6628104",
+                  "subType": "ACTUAL"
+                },
+                "#text": "14.0462"
+              },
+              {
+                "@attributes": {
+                  "dataItemId": "Xabs",
+                  "timestamp": "2025-07-07T13:26:16.756569Z",
+                  "sequence": "6628110",
+                  "subType": "ACTUAL"
+                },
+                "#text": "13.89126"
+              },
+              {
+                "@attributes": {
+                  "dataItemId": "Xabs",
+                  "timestamp": "2025-07-07T13:26:19.060310Z",
+                  "sequence": "6628117",
+                  "subType": "ACTUAL"
+                },
+                "#text": "15.41653"
+              },
+              {
+                "@attributes": {
+                  "dataItemId": "Xabs",
+                  "timestamp": "2025-07-07T13:26:21.392743Z",
+                  "sequence": "6628122",
+                  "subType": "ACTUAL"
+                },
+                "#text": "13.24864"
+              },
+              {
+                "@attributes": {
+                  "dataItemId": "Xabs",
+                  "timestamp": "2025-07-07T13:26:23.696371Z",
+                  "sequence": "6628130",
+                  "subType": "ACTUAL"
+                },
+                "#text": "8.69823"
+              },
+              {
+                "@attributes": {
+                  "dataItemId": "Xabs",
+                  "timestamp": "2025-07-07T13:26:26.000185Z",
+                  "sequence": "6628134",
+                  "subType": "ACTUAL"
+                },
+                "#text": "4.78409"
+              },
+              {
+                "@attributes": {
+                  "dataItemId": "Xabs",
+                  "timestamp": "2025-07-07T13:26:28.304203Z",
+                  "sequence": "6628140",
+                  "subType": "ACTUAL"
+                },
+                "#text": "691.84139"
+              },
+              {
+                "@attributes": {
+                  "dataItemId": "Xabs",
+                  "timestamp": "2025-07-07T13:27:48.801040Z",
+                  "sequence": "6628164",
+                  "subType": "ACTUAL"
+                },
+                "#text": "5.01015"
+              },
+              {
+                "@attributes": {
+                  "dataItemId": "Xabs",
+                  "timestamp": "2025-07-07T13:27:51.132398Z",
+                  "sequence": "6628176",
+                  "subType": "ACTUAL"
+                },
+                "#text": "8.09371"
+              },
+              {
+                "@attributes": {
+                  "dataItemId": "Xpos",
+                  "timestamp": "2025-07-07T13:26:07.540934Z",
+                  "sequence": "6628085",
+                  "subType": "ACTUAL"
+                },
+                "#text": "-440.73826"
+              },
+              {
+                "@attributes": {
+                  "dataItemId": "Xpos",
+                  "timestamp": "2025-07-07T13:26:09.844662Z",
+                  "sequence": "6628095",
+                  "subType": "ACTUAL"
+                },
+                "#text": "-450.00926"
+              },
+              {
+                "@attributes": {
+                  "dataItemId": "Xpos",
+                  "timestamp": "2025-07-07T13:26:12.148592Z",
+                  "sequence": "6628100",
+                  "subType": "ACTUAL"
+                },
+                "#text": "-459.28153"
+              },
+              {
+                "@attributes": {
+                  "dataItemId": "Xpos",
+                  "timestamp": "2025-07-07T13:26:14.452636Z",
+                  "sequence": "6628105",
+                  "subType": "ACTUAL"
+                },
+                "#text": "-468.5538"
+              },
+              {
+                "@attributes": {
+                  "dataItemId": "Xpos",
+                  "timestamp": "2025-07-07T13:26:16.756569Z",
+                  "sequence": "6628111",
+                  "subType": "ACTUAL"
+                },
+                "#text": "-468.70874"
+              },
+              {
+                "@attributes": {
+                  "dataItemId": "Xpos",
+                  "timestamp": "2025-07-07T13:26:19.060310Z",
+                  "sequence": "6628118",
+                  "subType": "ACTUAL"
+                },
+                "#text": "-467.18347"
+              },
+              {
+                "@attributes": {
+                  "dataItemId": "Xpos",
+                  "timestamp": "2025-07-07T13:26:21.392743Z",
+                  "sequence": "6628123",
+                  "subType": "ACTUAL"
+                },
+                "#text": "-469.35136"
+              },
+              {
+                "@attributes": {
+                  "dataItemId": "Xpos",
+                  "timestamp": "2025-07-07T13:26:23.696371Z",
+                  "sequence": "6628131",
+                  "subType": "ACTUAL"
+                },
+                "#text": "-473.90177"
+              },
+              {
+                "@attributes": {
+                  "dataItemId": "Xpos",
+                  "timestamp": "2025-07-07T13:26:26.000185Z",
+                  "sequence": "6628135",
+                  "subType": "ACTUAL"
+                },
+                "#text": "-477.81591"
+              },
+              {
+                "@attributes": {
+                  "dataItemId": "Xpos",
+                  "timestamp": "2025-07-07T13:27:48.801040Z",
+                  "sequence": "6628165",
+                  "subType": "ACTUAL"
+                },
+                "#text": "-477.58985"
+              },
+              {
+                "@attributes": {
+                  "dataItemId": "Xpos",
+                  "timestamp": "2025-07-07T13:27:51.132398Z",
+                  "sequence": "6628177",
+                  "subType": "ACTUAL"
+                },
+                "#text": "-474.50629"
+              }
+            ],
+            "Load": [
+              {
+                "@attributes": {
+                  "dataItemId": "Xload",
+                  "timestamp": "2025-07-07T13:26:16.756569Z",
+                  "sequence": "6628112"
+                },
+                "#text": "-11"
+              },
+              {
+                "@attributes": {
+                  "dataItemId": "Xload",
+                  "timestamp": "2025-07-07T13:26:21.392743Z",
+                  "sequence": "6628124"
+                },
+                "#text": "10"
+              },
+              {
+                "@attributes": {
+                  "dataItemId": "Xload",
+                  "timestamp": "2025-07-07T13:26:28.304203Z",
+                  "sequence": "6628141"
+                },
+                "#text": "5"
+              },
+              {
+                "@attributes": {
+                  "dataItemId": "Xload",
+                  "timestamp": "2025-07-07T13:27:48.801040Z",
+                  "sequence": "6628166"
+                },
+                "#text": "-12"
+              }
+            ]
+          }
+        },
+        {
+          "@attributes": {
+            "component": "Linear",
+            "name": "Y",
+            "componentId": "y"
+          },
+          "Samples": {
+            "Position": [
+              {
+                "@attributes": {
+                  "dataItemId": "Yabs",
+                  "timestamp": "2025-07-07T13:26:07.540934Z",
+                  "sequence": "6628086",
+                  "subType": "ACTUAL"
+                },
+                "#text": "5.08"
+              },
+              {
+                "@attributes": {
+                  "dataItemId": "Yabs",
+                  "timestamp": "2025-07-07T13:26:28.304203Z",
+                  "sequence": "6628142",
+                  "subType": "ACTUAL"
+                },
+                "#text": "-107.83062"
+              },
+              {
+                "@attributes": {
+                  "dataItemId": "Yabs",
+                  "timestamp": "2025-07-07T13:27:48.801040Z",
+                  "sequence": "6628167",
+                  "subType": "ACTUAL"
+                },
+                "#text": "-7.76986"
+              },
+              {
+                "@attributes": {
+                  "dataItemId": "Yabs",
+                  "timestamp": "2025-07-07T13:27:51.132398Z",
+                  "sequence": "6628178",
+                  "subType": "ACTUAL"
+                },
+                "#text": "-2.61747"
+              },
+              {
+                "@attributes": {
+                  "dataItemId": "Ypos",
+                  "timestamp": "2025-07-07T13:27:48.801040Z",
+                  "sequence": "6628168",
+                  "subType": "ACTUAL"
+                },
+                "#text": "-566.56986"
+              },
+              {
+                "@attributes": {
+                  "dataItemId": "Ypos",
+                  "timestamp": "2025-07-07T13:27:51.132398Z",
+                  "sequence": "6628179",
+                  "subType": "ACTUAL"
+                },
+                "#text": "-561.41747"
+              }
+            ],
+            "Load": [
+              {
+                "@attributes": {
+                  "dataItemId": "Yload",
+                  "timestamp": "2025-07-07T13:26:14.452636Z",
+                  "sequence": "6628106"
+                },
+                "#text": "4"
+              },
+              {
+                "@attributes": {
+                  "dataItemId": "Yload",
+                  "timestamp": "2025-07-07T13:27:48.801040Z",
+                  "sequence": "6628169"
+                },
+                "#text": "-7"
+              }
+            ]
+          }
+        },
+        {
+          "@attributes": {
+            "component": "Linear",
+            "name": "Z",
+            "componentId": "z"
+          },
+          "Samples": {
+            "Position": [
+              {
+                "@attributes": {
+                  "dataItemId": "Zabs",
+                  "timestamp": "2025-07-07T13:26:07.540934Z",
+                  "sequence": "6628087",
+                  "subType": "ACTUAL"
+                },
+                "#text": "341.64778"
+              },
+              {
+                "@attributes": {
+                  "dataItemId": "Zabs",
+                  "timestamp": "2025-07-07T13:26:09.844662Z",
+                  "sequence": "6628096",
+                  "subType": "ACTUAL"
+                },
+                "#text": "273.40052"
+              },
+              {
+                "@attributes": {
+                  "dataItemId": "Zabs",
+                  "timestamp": "2025-07-07T13:26:12.148592Z",
+                  "sequence": "6628101",
+                  "subType": "ACTUAL"
+                },
+                "#text": "205.15199"
+              },
+              {
+                "@attributes": {
+                  "dataItemId": "Zabs",
+                  "timestamp": "2025-07-07T13:26:14.452636Z",
+                  "sequence": "6628107",
+                  "subType": "ACTUAL"
+                },
+                "#text": "136.90346"
+              },
+              {
+                "@attributes": {
+                  "dataItemId": "Zabs",
+                  "timestamp": "2025-07-07T13:26:16.756569Z",
+                  "sequence": "6628113",
+                  "subType": "ACTUAL"
+                },
+                "#text": "70.98665"
+              },
+              {
+                "@attributes": {
+                  "dataItemId": "Zabs",
+                  "timestamp": "2025-07-07T13:26:19.060310Z",
+                  "sequence": "6628119",
+                  "subType": "ACTUAL"
+                },
+                "#text": "-0.69088"
+              },
+              {
+                "@attributes": {
+                  "dataItemId": "Zabs",
+                  "timestamp": "2025-07-07T13:26:21.392743Z",
+                  "sequence": "6628125",
+                  "subType": "ACTUAL"
+                },
+                "#text": "-14.224"
+              },
+              {
+                "@attributes": {
+                  "dataItemId": "Zabs",
+                  "timestamp": "2025-07-07T13:26:28.304203Z",
+                  "sequence": "6628143",
+                  "subType": "ACTUAL"
+                },
+                "#text": "-52.23002"
+              },
+              {
+                "@attributes": {
+                  "dataItemId": "Zabs",
+                  "timestamp": "2025-07-07T13:26:30.608238Z",
+                  "sequence": "6628147",
+                  "subType": "ACTUAL"
+                },
+                "#text": "123.10237"
+              },
+              {
+                "@attributes": {
+                  "dataItemId": "Zabs",
+                  "timestamp": "2025-07-07T13:26:32.911954Z",
+                  "sequence": "6628154",
+                  "subType": "ACTUAL"
+                },
+                "#text": "264.21334"
+              },
+              {
+                "@attributes": {
+                  "dataItemId": "Zabs",
+                  "timestamp": "2025-07-07T13:27:48.801040Z",
+                  "sequence": "6628170",
+                  "subType": "ACTUAL"
+                },
+                "#text": "297.1927"
+              },
+              {
+                "@attributes": {
+                  "dataItemId": "Zabs",
+                  "timestamp": "2025-07-07T13:27:51.132398Z",
+                  "sequence": "6628180",
+                  "subType": "ACTUAL"
+                },
+                "#text": "228.94036"
+              },
+              {
+                "@attributes": {
+                  "dataItemId": "Zpos",
+                  "timestamp": "2025-07-07T13:26:07.540934Z",
+                  "sequence": "6628088",
+                  "subType": "ACTUAL"
+                },
+                "#text": "-249.174"
+              },
+              {
+                "@attributes": {
+                  "dataItemId": "Zpos",
+                  "timestamp": "2025-07-07T13:26:09.844662Z",
+                  "sequence": "6628097",
+                  "subType": "ACTUAL"
+                },
+                "#text": "-317.42126"
+              },
+              {
+                "@attributes": {
+                  "dataItemId": "Zpos",
+                  "timestamp": "2025-07-07T13:26:12.148592Z",
+                  "sequence": "6628102",
+                  "subType": "ACTUAL"
+                },
+                "#text": "-385.66979"
+              },
+              {
+                "@attributes": {
+                  "dataItemId": "Zpos",
+                  "timestamp": "2025-07-07T13:26:14.452636Z",
+                  "sequence": "6628108",
+                  "subType": "ACTUAL"
+                },
+                "#text": "-453.91832"
+              },
+              {
+                "@attributes": {
+                  "dataItemId": "Zpos",
+                  "timestamp": "2025-07-07T13:26:16.756569Z",
+                  "sequence": "6628114",
+                  "subType": "ACTUAL"
+                },
+                "#text": "-519.83513"
+              },
+              {
+                "@attributes": {
+                  "dataItemId": "Zpos",
+                  "timestamp": "2025-07-07T13:26:19.060310Z",
+                  "sequence": "6628120",
+                  "subType": "ACTUAL"
+                },
+                "#text": "-591.51266"
+              },
+              {
+                "@attributes": {
+                  "dataItemId": "Zpos",
+                  "timestamp": "2025-07-07T13:26:21.392743Z",
+                  "sequence": "6628126",
+                  "subType": "ACTUAL"
+                },
+                "#text": "-605.04578"
+              },
+              {
+                "@attributes": {
+                  "dataItemId": "Zpos",
+                  "timestamp": "2025-07-07T13:26:30.608238Z",
+                  "sequence": "6628148",
+                  "subType": "ACTUAL"
+                },
+                "#text": "-429.71339"
+              },
+              {
+                "@attributes": {
+                  "dataItemId": "Zpos",
+                  "timestamp": "2025-07-07T13:26:32.911954Z",
+                  "sequence": "6628155",
+                  "subType": "ACTUAL"
+                },
+                "#text": "-288.60242"
+              },
+              {
+                "@attributes": {
+                  "dataItemId": "Zpos",
+                  "timestamp": "2025-07-07T13:27:48.801040Z",
+                  "sequence": "6628171",
+                  "subType": "ACTUAL"
+                },
+                "#text": "-293.62908"
+              }
+            ],
+            "Load": [
+              {
+                "@attributes": {
+                  "dataItemId": "Zload",
+                  "timestamp": "2025-07-07T13:26:07.540934Z",
+                  "sequence": "6628089"
+                },
+                "#text": "-33"
+              },
+              {
+                "@attributes": {
+                  "dataItemId": "Zload",
+                  "timestamp": "2025-07-07T13:26:30.608238Z",
+                  "sequence": "6628149"
+                },
+                "#text": "-47"
+              },
+              {
+                "@attributes": {
+                  "dataItemId": "Zload",
+                  "timestamp": "2025-07-07T13:26:32.911954Z",
+                  "sequence": "6628156"
+                },
+                "#text": "-40"
+              },
+              {
+                "@attributes": {
+                  "dataItemId": "Zload",
+                  "timestamp": "2025-07-07T13:27:48.801040Z",
+                  "sequence": "6628172"
+                },
+                "#text": "-33"
+              }
+            ]
+          }
+        }
+      ]
+    }
+  }
+}
