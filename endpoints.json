@@ -1,0 +1,40 @@
+{
+  "mazak_machines": {
+    "mazak_1_vtc_200": {
+      "name": "Mazak 1 (VTC-200)",
+      "base_url": "http://192.168.100.241:5000",
+      "endpoints": {
+        "current": "/current",
+        "sample": "/sample"
+      }
+    },
+    "mazak_2_vtc_300": {
+      "name": "Mazak 2 (VTC-300)",
+      "base_url": "http://192.168.100.241:5001",
+      "endpoints": {
+        "current": "/current",
+        "sample": "/sample"
+      }
+    },
+    "mazak_3_350msy": {
+      "name": "Mazak 3 (350MSY)",
+      "base_url": "http://192.168.100.241:5002",
+      "endpoints": {
+        "current": "/current",
+        "sample": "/sample"
+      }
+    },
+    "mazak_4_vtc_300c": {
+      "name": "Mazak 4 (VTC-300C)",
+      "base_url": "http://192.168.100.237:5000",
+      "endpoints": {
+        "current": "/current",
+        "sample": "/sample"
+      }
+    }
+  },
+  "endpoint_types": {
+    "current": "Current Reading",
+    "sample": "Date Sample"
+  }
+} 

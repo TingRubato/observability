@@ -1,14 +1,5 @@
 {
-  "header": {
-    "creationTime": "2025-05-14T13:28:10Z",
-    "sender": "apm-86xxx-ie4000",
-    "instanceId": 1720551353,
-    "version": "1.5.0.14",
-    "bufferSize": 1024,
-    "nextSequence": 5304548,
-    "firstSequence": 5303524,
-    "lastSequence": 5304547
-  },
+  "header": {},
   "device": {
     "name": "Mazak",
     "uuid": "Mazak",
@@ -18,15 +9,15 @@
         "name": "base",
         "conditions": {
           "servo_cond": {
-            "timestamp": "2025-05-14T12:01:42.381524Z",
-            "sequence": 5298008,
-            "state": "Normal",
+            "timestamp": "2025-07-07T11:43:32.205333Z",
+            "sequence": 6623029,
+            "state": "#text",
             "category": "ACTUATOR"
           },
           "spindle_cond": {
-            "timestamp": "2025-05-14T12:01:42.391971Z",
-            "sequence": 5298016,
-            "state": "Normal",
+            "timestamp": "2025-07-07T11:43:32.222751Z",
+            "sequence": 6623037,
+            "state": "#text",
             "category": "SYSTEM"
           }
         }
@@ -74,7 +65,7 @@
           "Btravel": {
             "timestamp": "2024-07-09T18:55:53.382314Z",
             "sequence": 5,
-            "state": "Unavailable",
+            "state": "#text",
             "category": "ANGLE"
           }
         }
@@ -106,13 +97,13 @@
             "value": null
           },
           "Sload": {
-            "timestamp": "2025-05-14T13:24:41.739879Z",
-            "sequence": 5304514,
-            "value": 1
+            "timestamp": "2025-07-07T17:41:40.292297Z",
+            "sequence": 6634964,
+            "value": 0
           },
           "Srpm": {
-            "timestamp": "2025-05-14T13:24:50.955301Z",
-            "sequence": 5304542,
+            "timestamp": "2025-07-07T17:41:40.292297Z",
+            "sequence": 6634963,
             "value": 0,
             "subType": "ACTUAL"
           },
@@ -139,19 +130,19 @@
           "Ctravel": {
             "timestamp": "2024-07-09T18:55:53.382314Z",
             "sequence": 11,
-            "state": "Unavailable",
+            "state": "#text",
             "category": "ANGLE"
           },
           "Sload_cond": {
-            "timestamp": "2025-05-14T12:01:42.403847Z",
-            "sequence": 5298031,
-            "state": "Normal",
+            "timestamp": "2025-07-07T11:43:32.243137Z",
+            "sequence": 6623055,
+            "state": "#text",
             "category": "LOAD"
           },
           "Stemp_cond": {
-            "timestamp": "2025-05-14T12:01:42.404848Z",
-            "sequence": 5298032,
-            "state": "Normal",
+            "timestamp": "2025-07-07T11:43:32.243877Z",
+            "sequence": 6623056,
+            "state": "#text",
             "category": "TEMPERATURE"
           }
         }
@@ -161,15 +152,15 @@
         "name": "controller",
         "samples": {
           "auto_time": {
-            "timestamp": "2025-05-14T13:24:48.651596Z",
-            "sequence": 5304536,
-            "value": 491069,
+            "timestamp": "2025-07-07T17:41:37.996327Z",
+            "sequence": 6634957,
+            "value": 1015753,
             "subType": "x:AUTO"
           },
           "cut_time": {
-            "timestamp": "2025-05-14T13:24:46.347820Z",
-            "sequence": 5304529,
-            "value": 19815593,
+            "timestamp": "2025-07-07T17:41:35.684938Z",
+            "sequence": 6634945,
+            "value": 20185836,
             "subType": "x:CUT"
           },
           "total_auto_cut_time": {
@@ -179,41 +170,41 @@
             "subType": "x:TOTALCUTTIME"
           },
           "total_time": {
-            "timestamp": "2025-05-14T13:27:13.969238Z",
-            "sequence": 5304547,
-            "value": 14603323,
+            "timestamp": "2025-07-07T17:47:40.160420Z",
+            "sequence": 6634968,
+            "value": 15870773,
             "subType": "x:TOTAL"
           }
         },
         "events": {
           "estop": {
-            "timestamp": "2025-05-14T12:01:42.397331Z",
-            "sequence": 5298019,
+            "timestamp": "2025-07-07T17:01:01.992342Z",
+            "sequence": 6632480,
             "value": "ARMED"
           },
           "pallet_num": {
-            "timestamp": "2025-05-14T13:24:30.192402Z",
-            "sequence": 5304477,
+            "timestamp": "2025-07-07T13:24:16.951475Z",
+            "sequence": 6627971,
             "value": 1
           }
         },
         "conditions": {
           "comms_cond": {
-            "timestamp": "2025-05-14T12:01:42.383529Z",
-            "sequence": 5298009,
-            "state": "Normal",
+            "timestamp": "2025-07-07T14:02:34.796241Z",
+            "sequence": 6628951,
+            "state": "#text",
             "category": "COMMUNICATIONS"
           },
           "logic_cond": {
-            "timestamp": "2025-05-14T12:01:42.385178Z",
-            "sequence": 5298010,
-            "state": "Normal",
+            "timestamp": "2025-07-07T13:27:48.799719Z",
+            "sequence": 6628163,
+            "state": "#text",
             "category": "LOGIC_PROGRAM"
           },
           "system_cond": {
-            "timestamp": "2025-05-14T12:01:42.386607Z",
-            "sequence": 5298011,
-            "state": "Normal",
+            "timestamp": "2025-07-07T11:43:32.214411Z",
+            "sequence": 6623032,
+            "state": "#text",
             "category": "SYSTEM"
           }
         }
@@ -235,9 +226,9 @@
         },
         "conditions": {
           "coolant_cond": {
-            "timestamp": "2025-05-14T12:01:42.394554Z",
-            "sequence": 5298017,
-            "state": "Normal",
+            "timestamp": "2025-07-07T11:43:32.227656Z",
+            "sequence": 6623038,
+            "state": "#text",
             "category": "SYSTEM"
           }
         }
@@ -279,21 +270,19 @@
         },
         "events": {
           "avail": {
-            "timestamp": "2025-05-14T12:01:42.379902Z",
-            "sequence": 5298007,
+            "timestamp": "2025-07-07T11:43:32.204028Z",
+            "sequence": 6623028,
             "value": "AVAILABLE"
           },
           "d1_asset_chg": {
             "timestamp": "2024-07-09T18:55:53.382314Z",
             "sequence": 55,
-            "value": null,
-            "assetType": null
+            "value": null
           },
           "d1_asset_rem": {
             "timestamp": "2024-07-09T18:55:53.382314Z",
             "sequence": 56,
-            "value": null,
-            "assetType": null
+            "value": null
           },
           "emdelay": {
             "timestamp": "2024-07-09T18:55:53.382314Z",
@@ -348,9 +337,9 @@
         "name": "electric",
         "conditions": {
           "electric_cond": {
-            "timestamp": "2025-05-14T12:01:42.395964Z",
-            "sequence": 5298018,
-            "state": "Normal",
+            "timestamp": "2025-07-07T11:43:32.228298Z",
+            "sequence": 6623039,
+            "state": "#text",
             "category": "SYSTEM"
           }
         }
@@ -360,9 +349,9 @@
         "name": "hydraulic",
         "conditions": {
           "hydra_cond": {
-            "timestamp": "2025-05-14T12:01:42.388001Z",
-            "sequence": 5298013,
-            "state": "Normal",
+            "timestamp": "2025-07-07T11:43:32.220929Z",
+            "sequence": 6623034,
+            "state": "#text",
             "category": "SYSTEM"
           }
         }
@@ -372,9 +361,9 @@
         "name": "lubrication",
         "conditions": {
           "lubrication_cond": {
-            "timestamp": "2025-05-14T12:01:42.389257Z",
-            "sequence": 5298014,
-            "state": "Normal",
+            "timestamp": "2025-07-07T11:43:32.221554Z",
+            "sequence": 6623035,
+            "state": "#text",
             "category": "SYSTEM"
           }
         }
@@ -384,8 +373,8 @@
         "name": "path",
         "samples": {
           "Fact": {
-            "timestamp": "2025-05-14T13:24:50.955301Z",
-            "sequence": 5304544,
+            "timestamp": "2025-07-07T17:41:40.292297Z",
+            "sequence": 6634965,
             "value": 0,
             "subType": "ACTUAL"
           },
@@ -398,40 +387,40 @@
         },
         "events": {
           "Fovr": {
-            "timestamp": "2025-05-14T12:01:42.405562Z",
-            "sequence": 5298040,
+            "timestamp": "2025-07-07T11:43:32.244492Z",
+            "sequence": 6623064,
             "value": 100,
             "subType": "PROGRAMMED"
           },
           "Frapidovr": {
-            "timestamp": "2025-05-14T12:56:56.141071Z",
-            "sequence": 5300947,
+            "timestamp": "2025-07-07T17:02:40.635120Z",
+            "sequence": 6632583,
             "value": 100,
             "subType": "RAPID"
           },
           "PartCountAct": {
-            "timestamp": "2025-05-14T12:01:42.405562Z",
-            "sequence": 5298049,
+            "timestamp": "2025-07-07T11:43:32.244492Z",
+            "sequence": 6623073,
             "value": 0
           },
           "Sovr": {
-            "timestamp": "2025-05-14T12:01:42.405562Z",
-            "sequence": 5298042,
+            "timestamp": "2025-07-07T11:43:32.244492Z",
+            "sequence": 6623066,
             "value": 100
           },
           "Tool_group": {
-            "timestamp": "2025-05-14T12:01:42.405562Z",
-            "sequence": 5298046,
+            "timestamp": "2025-07-07T11:43:32.244492Z",
+            "sequence": 6623070,
             "value": 0
           },
           "Tool_number": {
-            "timestamp": "2025-05-14T13:22:21.058503Z",
-            "sequence": 5304073,
-            "value": 31
+            "timestamp": "2025-07-07T17:41:14.927539Z",
+            "sequence": 6634843,
+            "value": 45
           },
           "Tool_suffix": {
-            "timestamp": "2025-05-14T13:22:21.058503Z",
-            "sequence": 5304074,
+            "timestamp": "2025-07-07T17:41:14.927539Z",
+            "sequence": 6634844,
             "value": "C"
           },
           "cmodryrun": {
@@ -459,8 +448,8 @@
             "count": 0
           },
           "execution": {
-            "timestamp": "2025-05-14T13:24:50.955301Z",
-            "sequence": 5304543,
+            "timestamp": "2025-07-07T17:41:37.996327Z",
+            "sequence": 6634954,
             "value": "READY"
           },
           "hd1chuckstate": {
@@ -469,19 +458,19 @@
             "value": null
           },
           "linelabel": {
-            "timestamp": "2025-05-14T12:01:42.405562Z",
-            "sequence": 5298038,
+            "timestamp": "2025-07-07T11:43:32.244492Z",
+            "sequence": 6623062,
             "value": 0
           },
           "linenumber": {
-            "timestamp": "2025-05-14T12:01:42.405562Z",
-            "sequence": 5298037,
+            "timestamp": "2025-07-07T11:43:32.244492Z",
+            "sequence": 6623061,
             "value": 0,
             "subType": "INCREMENTAL"
           },
           "mode": {
-            "timestamp": "2025-05-14T12:28:10.241397Z",
-            "sequence": 5298196,
+            "timestamp": "2025-07-07T14:50:20.119531Z",
+            "sequence": 6629850,
             "value": "AUTOMATIC"
           },
           "peditmode": {
@@ -495,35 +484,21 @@
             "value": null
           },
           "program": {
-            "timestamp": "2025-05-14T12:49:42.319144Z",
-            "sequence": 5299701,
-            "value": 7,
+            "timestamp": "2025-07-07T17:02:08.352389Z",
+            "sequence": 6632481,
+            "value": 40817001,
             "subType": "MAIN"
           },
           "subprogram": {
-            "timestamp": "2025-05-14T12:01:42.405562Z",
-            "sequence": 5298034,
-            "value": {
-              "$": {
-                "dataItemId": "subprogram",
-                "timestamp": "2025-05-14T12:01:42.405562Z",
-                "sequence": "5298034",
-                "subType": "ACTIVE"
-              }
-            },
+            "timestamp": "2025-07-07T11:43:32.244492Z",
+            "sequence": 6623058,
+            "value": null,
             "subType": "ACTIVE"
           },
           "program_cmt": {
-            "timestamp": "2025-05-14T12:49:42.319144Z",
-            "sequence": 5299702,
-            "value": {
-              "$": {
-                "dataItemId": "program_cmt",
-                "timestamp": "2025-05-14T12:49:42.319144Z",
-                "sequence": "5299702",
-                "subType": "MAIN"
-              }
-            },
+            "timestamp": "2025-07-07T17:02:08.352389Z",
+            "sequence": 6632482,
+            "value": "TGR-36",
             "subType": "MAIN"
           },
           "subprogram_cmt": {
@@ -533,27 +508,27 @@
             "subType": "ACTIVE"
           },
           "sequenceNum": {
-            "timestamp": "2025-05-14T13:24:46.347820Z",
-            "sequence": 5304526,
+            "timestamp": "2025-07-07T17:41:35.684938Z",
+            "sequence": 6634942,
             "value": 0
           },
           "unitNum": {
-            "timestamp": "2025-05-14T13:24:50.955301Z",
-            "sequence": 5304545,
+            "timestamp": "2025-07-07T17:41:37.996327Z",
+            "sequence": 6634956,
             "value": 0
           }
         },
         "conditions": {
           "motion_cond": {
-            "timestamp": "2025-05-14T12:01:42.390476Z",
-            "sequence": 5298015,
-            "state": "Normal",
+            "timestamp": "2025-07-07T14:42:06.850408Z",
+            "sequence": 6629575,
+            "state": "#text",
             "category": "MOTION_PROGRAM"
           },
           "path_system": {
-            "timestamp": "2025-05-14T12:01:42.408370Z",
-            "sequence": 5298053,
-            "state": "Normal",
+            "timestamp": "2025-07-07T13:24:14.649639Z",
+            "sequence": 6627970,
+            "state": "#text",
             "category": "SYSTEM"
           }
         }
@@ -574,9 +549,9 @@
         "name": "pneumatic",
         "conditions": {
           "pneu_cond": {
-            "timestamp": "2025-05-14T12:01:42.387386Z",
-            "sequence": 5298012,
-            "state": "Normal",
+            "timestamp": "2025-07-07T11:43:32.220014Z",
+            "sequence": 6623033,
+            "state": "#text",
             "category": "SYSTEM"
           }
         }
@@ -608,15 +583,15 @@
         "name": "X",
         "samples": {
           "Xabs": {
-            "timestamp": "2025-05-14T13:24:50.955301Z",
-            "sequence": 5304537,
-            "value": 943.79288,
+            "timestamp": "2025-07-07T17:41:40.292297Z",
+            "sequence": 6634958,
+            "value": 134.73938,
             "subType": "ACTUAL"
           },
           "Xpos": {
-            "timestamp": "2025-05-14T13:24:39.436137Z",
-            "sequence": 5304502,
-            "value": -225.86442,
+            "timestamp": "2025-07-07T17:41:35.684938Z",
+            "sequence": 6634934,
+            "value": -1034.91792,
             "subType": "ACTUAL"
           },
           "Xfrt": {
@@ -625,9 +600,9 @@
             "value": null
           },
           "Xload": {
-            "timestamp": "2025-05-14T13:24:23.280081Z",
-            "sequence": 5304461,
-            "value": -5
+            "timestamp": "2025-07-07T17:41:35.684938Z",
+            "sequence": 6634935,
+            "value": 4
           },
           "servotemp1": {
             "timestamp": "2024-07-09T18:55:53.382314Z",
@@ -645,9 +620,9 @@
         },
         "conditions": {
           "Xtravel": {
-            "timestamp": "2025-05-14T12:01:42.398879Z",
-            "sequence": 5298021,
-            "state": "Normal",
+            "timestamp": "2025-07-07T11:43:32.229491Z",
+            "sequence": 6623042,
+            "state": "#text",
             "category": "POSITION"
           }
         }
@@ -657,14 +632,14 @@
         "name": "Y",
         "samples": {
           "Yabs": {
-            "timestamp": "2025-05-14T13:24:50.955301Z",
-            "sequence": 5304538,
+            "timestamp": "2025-07-07T17:41:40.292297Z",
+            "sequence": 6634959,
             "value": 459.1177,
             "subType": "ACTUAL"
           },
           "Ypos": {
-            "timestamp": "2025-05-14T13:24:50.955301Z",
-            "sequence": 5304539,
+            "timestamp": "2025-07-07T17:41:40.292297Z",
+            "sequence": 6634960,
             "value": 0,
             "subType": "ACTUAL"
           },
@@ -674,9 +649,9 @@
             "value": null
           },
           "Yload": {
-            "timestamp": "2025-05-14T13:24:50.955301Z",
-            "sequence": 5304540,
-            "value": -4
+            "timestamp": "2025-07-07T17:41:40.292297Z",
+            "sequence": 6634961,
+            "value": -5
           },
           "servotemp2": {
             "timestamp": "2024-07-09T18:55:53.382314Z",
@@ -694,9 +669,9 @@
         },
         "conditions": {
           "Ytravel": {
-            "timestamp": "2025-05-14T12:01:42.400580Z",
-            "sequence": 5298024,
-            "state": "Normal",
+            "timestamp": "2025-07-07T11:43:32.230720Z",
+            "sequence": 6623046,
+            "state": "#text",
             "category": "POSITION"
           }
         }
@@ -706,14 +681,14 @@
         "name": "Z",
         "samples": {
           "Zabs": {
-            "timestamp": "2025-05-14T13:24:50.955301Z",
-            "sequence": 5304541,
-            "value": 532.93772,
+            "timestamp": "2025-07-07T17:41:40.292297Z",
+            "sequence": 6634962,
+            "value": 579.24954,
             "subType": "ACTUAL"
           },
           "Zpos": {
-            "timestamp": "2025-05-14T13:24:48.651596Z",
-            "sequence": 5304534,
+            "timestamp": "2025-07-07T17:41:37.996327Z",
+            "sequence": 6634950,
             "value": 0,
             "subType": "ACTUAL"
           },
@@ -723,9 +698,9 @@
             "value": null
           },
           "Zload": {
-            "timestamp": "2025-05-14T13:24:48.651596Z",
-            "sequence": 5304535,
-            "value": -38
+            "timestamp": "2025-07-07T17:41:37.996327Z",
+            "sequence": 6634951,
+            "value": -40
           },
           "servotemp3": {
             "timestamp": "2024-07-09T18:55:53.382314Z",
@@ -743,17 +718,13 @@
         },
         "conditions": {
           "Ztravel": {
-            "timestamp": "2025-05-14T12:01:42.401751Z",
-            "sequence": 5298027,
-            "state": "Normal",
+            "timestamp": "2025-07-07T11:43:32.236298Z",
+            "sequence": 6623050,
+            "state": "#text",
             "category": "POSITION"
           }
         }
       }
     }
-  },
-  "metadata": {
-    "schema": "urn:mtconnect.org:MTConnectStreams:1.5",
-    "schemaLocation": "urn:mtconnect.org:MTConnectStreams:1.5 http://schemas.mtconnect.org/schemas/MTConnectStreams_1.5.xsd"
   }
 }
