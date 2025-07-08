@@ -103,7 +103,9 @@ const maxPower = powerData.length > 0 ? Math.max(...powerData.map(d => d.value))
 
 <!-- Machine Status Header with Enhanced Styling -->
 
-<div class="hero" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 2rem; border-radius: 1rem; text-align: center; margin: 2rem 0; box-shadow: 0 4px 20px rgba(0,0,0,0.1);">
+```js
+// Machine Status Header
+display(html`<div class="hero" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 2rem; border-radius: 1rem; text-align: center; margin: 2rem 0; box-shadow: 0 4px 20px rgba(0,0,0,0.1);">
   <h2 style="margin: 0; font-size: 2rem;">Mazak VTC 300 - Live Status</h2>
   <p style="margin: 0.5rem 0 0 0; opacity: 0.9;">
     Data Sources: ${machineInfo.length} files | 
@@ -120,11 +122,14 @@ const maxPower = powerData.length > 0 ? Math.max(...powerData.map(d => d.value))
       Conditions: ${conditions.length.toLocaleString()}
     </span>
   </div>
-</div>
+</div>`)
+```
 
 <!-- Enhanced KPI Cards -->
 
-<div class="grid grid-cols-4">
+```js
+// Enhanced KPI Cards
+display(html`<div class="grid grid-cols-4">
   <div class="card">
     <h2>Auto Time</h2>
     <span class="big">${(latestSamples.auto_time / 3600).toFixed(1)} hrs</span>
@@ -145,9 +150,11 @@ const maxPower = powerData.length > 0 ? Math.max(...powerData.map(d => d.value))
     <span class="big" style="color: ${efficiency > 70 ? 'green' : efficiency > 50 ? 'orange' : 'red'}">${efficiency.toFixed(1)}%</span>
     <small>Cut time / Total time</small>
   </div>
-</div>
+</div>`)
+```
 
-<div class="grid grid-cols-3">
+```js
+display(html`<div class="grid grid-cols-3">
   <div class="card">
     <h2>Availability</h2>
     <span class="big" style="color: ${latestEvents.avail === 'AVAILABLE' ? 'green' : 'orange'}">${latestEvents.avail || 'Unknown'}</span>
@@ -160,209 +167,263 @@ const maxPower = powerData.length > 0 ? Math.max(...powerData.map(d => d.value))
     <h2>E-Stop</h2>
     <span class="big" style="color: ${latestEvents.estop === 'ARMED' ? 'green' : 'red'}">${latestEvents.estop || 'Unknown'}</span>
   </div>
-</div>
+</div>`)
+```
 
 <!-- Enhanced Chart functions with better error handling -->
 
 ```js
 function axisPositionsChart(data, {width} = {}) {
-  const positionData = data.filter(d => /[XYZ]abs/.test(d.item));
+  const positionData = data.filter(d => 
+    /[XYZ]abs/.test(d.item) && 
+    d.ts && 
+    d.ts instanceof Date && 
+    isFinite(d.value)
+  );
   
   if (positionData.length === 0) {
+    return html`<div style="text-align: center; padding: 2rem; color: #6b7280;">
+      <h4>Axis Positions Over Time</h4>
+      <p>No position data available</p>
+    </div>`;
+  }
+  
+  try {
     return Plot.plot({
       title: "Axis Positions Over Time",
       width,
       height: 300,
+      x: {type: "time", nice: true, label: null},
+      y: {label: "Position (mm)"},
+      color: {legend: true},
       marks: [
-        Plot.text([{ts: new Date(), value: 0}], {
+        Plot.line(positionData, {
           x: "ts", 
           y: "value", 
-          text: ["No position data available"],
-          fontSize: 14,
-          fill: "gray",
-          textAnchor: "middle"
+          stroke: "item", 
+          curve: "step"
+        }),
+        Plot.dot(positionData.filter((d, i) => i % 10 === 0), {
+          x: "ts", 
+          y: "value", 
+          fill: "item", 
+          r: 2
         })
       ]
     });
+  } catch (error) {
+    console.error("Error creating axis positions chart:", error);
+    return html`<div style="text-align: center; padding: 2rem; color: #ef4444;">
+      <h4>Axis Positions Over Time</h4>
+      <p>Error rendering chart: ${error.message}</p>
+    </div>`;
   }
-  
-  return Plot.plot({
-    title: "Axis Positions Over Time",
-    width,
-    height: 300,
-    x: {type: "time", nice: true, label: null},
-    y: {label: "Position (mm)"},
-    color: {legend: true},
-    marks: [
-      Plot.line(positionData, {
-        x: "ts", 
-        y: "value", 
-        stroke: "item", 
-        curve: "step"
-      }),
-      Plot.dot(positionData.filter((d, i) => i % 10 === 0), {
-        x: "ts", 
-        y: "value", 
-        fill: "item", 
-        r: 2
-      })
-    ]
-  });
 }
 ```
 
 ```js
 function axisLoadsChart(data, {width} = {}) {
-  const axisLoads = data.filter(d => /(X|Y|Z)load/.test(d.item));
-  const spindleLoad = data.filter(d => d.item === "Sload");
+  const axisLoads = data.filter(d => 
+    /(X|Y|Z)load/.test(d.item) && 
+    d.ts && 
+    d.ts instanceof Date && 
+    isFinite(d.value)
+  );
+  const spindleLoad = data.filter(d => 
+    d.item === "Sload" && 
+    d.ts && 
+    d.ts instanceof Date && 
+    isFinite(d.value)
+  );
   
-  return Plot.plot({
-    title: "Axis & Spindle Loads",
-    width,
-    height: 300,
-    x: {type: "time", nice: true},
-    y: {label: "Load (%)", domain: [-100, 100]},
-    color: {legend: true},
-    marks: [
-      Plot.line(axisLoads, {
-        x: "ts", 
-        y: "value", 
-        stroke: "item"
-      }),
-      Plot.line(spindleLoad, {
-        x: "ts", 
-        y: "value", 
-        stroke: "red",
-        strokeWidth: 2
-      }),
-      Plot.ruleY([0], {stroke: "gray", strokeDasharray: "2,2"})
-    ]
-  });
+  if (axisLoads.length === 0 && spindleLoad.length === 0) {
+    return html`<div style="text-align: center; padding: 2rem; color: #6b7280;">
+      <h4>Axis & Spindle Loads</h4>
+      <p>No load data available</p>
+    </div>`;
+  }
+  
+  try {
+    return Plot.plot({
+      title: "Axis & Spindle Loads",
+      width,
+      height: 300,
+      x: {type: "time", nice: true},
+      y: {label: "Load (%)", domain: [-100, 100]},
+      color: {legend: true},
+      marks: [
+        ...(axisLoads.length > 0 ? [Plot.line(axisLoads, {
+          x: "ts", 
+          y: "value", 
+          stroke: "item"
+        })] : []),
+        ...(spindleLoad.length > 0 ? [Plot.line(spindleLoad, {
+          x: "ts", 
+          y: "value", 
+          stroke: "red",
+          strokeWidth: 2
+        })] : []),
+        Plot.ruleY([0], {stroke: "gray", strokeDasharray: "2,2"})
+      ]
+    });
+  } catch (error) {
+    console.error("Error creating axis loads chart:", error);
+    return html`<div style="text-align: center; padding: 2rem; color: #ef4444;">
+      <h4>Axis & Spindle Loads</h4>
+      <p>Error rendering chart: ${error.message}</p>
+    </div>`;
+  }
 }
 ```
 
 ```js
 function spindleChart(data, {width} = {}) {
-  const spindleData = data.filter(d => d.item === "Srpm" && !isNaN(d.value) && d.value !== null);
+  // More robust data filtering and validation
+  const spindleData = data.filter(d => 
+    d.item === "Srpm" && 
+    d.ts && 
+    d.ts instanceof Date && 
+    isFinite(d.value) && 
+    d.value !== null && 
+    d.value !== undefined &&
+    !isNaN(d.value)
+  );
   
-  // Handle case when no valid spindle data is available
+  console.log("Spindle data:", spindleData.length, spindleData.slice(0, 3));
+  
   if (spindleData.length === 0) {
+    return html`<div style="text-align: center; padding: 2rem; color: #6b7280;">
+      <h4>Spindle RPM</h4>
+      <p>No spindle data available</p>
+    </div>`;
+  }
+  
+  try {
+    // Ensure data is properly formatted for Plot.js
+    const plotData = spindleData.map(d => ({
+      ts: d.ts,
+      value: Number(d.value)
+    }));
+    
     return Plot.plot({
       title: "Spindle RPM",
       width,
       height: 300,
-      x: {type: "time", nice: true},
-      y: {label: "RPM", domain: [0, 1000]},
+      x: {type: "time", nice: true, label: null},
+      y: {label: "RPM"},
       marks: [
-        Plot.text([{ts: new Date(), value: 500}], {
+        Plot.line(plotData, {
           x: "ts", 
           y: "value", 
-          text: ["No spindle data available"],
-          fontSize: 14,
-          fill: "gray",
-          textAnchor: "middle"
+          stroke: "red",
+          strokeWidth: 2
+        }),
+        Plot.dot(plotData.filter((d, i) => i % Math.max(1, Math.floor(plotData.length / 20)) === 0), {
+          x: "ts", 
+          y: "value", 
+          fill: "red",
+          r: 3
         })
       ]
     });
+  } catch (error) {
+    console.error("Error creating spindle chart:", error);
+    return html`<div style="text-align: center; padding: 2rem; color: #ef4444;">
+      <h4>Spindle RPM</h4>
+      <p>Error rendering chart: ${error.message}</p>
+      <p>Data points: ${spindleData.length}</p>
+    </div>`;
   }
-  
-  return Plot.plot({
-    title: "Spindle RPM",
-    width,
-    height: 300,
-    x: {type: "time", nice: true},
-    y: {label: "RPM"},
-    marks: [
-      Plot.line(spindleData, {
-        x: "ts", 
-        y: "value", 
-        stroke: "red"
-      }),
-      Plot.area(spindleData, {
-        x: "ts", 
-        y: "value", 
-        fill: "red",
-        fillOpacity: 0.1
-      })
-    ]
-  });
 }
 ```
 
 ```js
 function powerChart(data, {width} = {}) {
-  const powerData = data.filter(d => d.item === "power" && isFinite(d.value));
+  const powerData = data.filter(d => 
+    d.item === "power" && 
+    d.ts && 
+    d.ts instanceof Date && 
+    isFinite(d.value)
+  );
   
   if (powerData.length === 0) {
+    return html`<div style="text-align: center; padding: 2rem; color: #6b7280;">
+      <h4>Machine Power Consumption</h4>
+      <p>No power data available</p>
+    </div>`;
+  }
+  
+  try {
+    const avgPowerValue = powerData.reduce((sum, d) => sum + d.value, 0) / powerData.length;
+    
     return Plot.plot({
       title: "Machine Power Consumption",
       width,
       height: 300,
-      x: {type: "time", nice: true},
-      y: {label: "Power (kW)", domain: [0, 10]},
+      x: {type: "time", nice: true, label: null},
+      y: {label: "Power (kW)"},
       marks: [
-        Plot.text([{ts: new Date(), value: 5}], {
+        Plot.line(powerData, {
           x: "ts", 
           y: "value", 
-          text: ["No power data available"],
-          fontSize: 14,
-          fill: "gray",
-          textAnchor: "middle"
-        })
+          stroke: "steelblue"
+        }),
+        Plot.area(powerData, {
+          x: "ts", 
+          y: "value", 
+          fill: "steelblue",
+          fillOpacity: 0.2
+        }),
+        Plot.ruleY([avgPowerValue], {stroke: "red", strokeDasharray: "3,3"})
       ]
     });
+  } catch (error) {
+    console.error("Error creating power chart:", error);
+    return html`<div style="text-align: center; padding: 2rem; color: #ef4444;">
+      <h4>Machine Power Consumption</h4>
+      <p>Error rendering chart: ${error.message}</p>
+    </div>`;
   }
-  
-  const avgPowerValue = powerData.reduce((sum, d) => sum + d.value, 0) / powerData.length;
-  
-  return Plot.plot({
-    title: "Machine Power Consumption",
-    width,
-    height: 300,
-    x: {type: "time", nice: true},
-    y: {label: "Power (kW)"},
-    marks: [
-      Plot.line(powerData, {
-        x: "ts", 
-        y: "value", 
-        stroke: "steelblue"
-      }),
-      Plot.area(powerData, {
-        x: "ts", 
-        y: "value", 
-        fill: "steelblue",
-        fillOpacity: 0.2
-      }),
-      Plot.ruleY([avgPowerValue], {stroke: "red", strokeDasharray: "3,3"}),
-      Plot.text([powerData[Math.floor(powerData.length/2)]], {
-        x: [powerData[Math.floor(powerData.length/2)]?.ts],
-        y: [avgPowerValue],
-        text: [`Avg: ${avgPowerValue.toFixed(1)} kW`],
-        fontSize: 12,
-        fill: "red",
-        dy: -10
-      })
-    ]
-  });
 }
 ```
 
 ```js
 function dataTypeComparisonChart(samplesData, eventsData, {width} = {}) {
-  // Compare current vs sample data types
   const currentSamples = samplesData.filter(d => d.dataType === "current");
   const sampleSamples = samplesData.filter(d => d.dataType === "sample");
   
+  const comparisonData = [
+    {source: "Current Data", count: currentSamples.length, color: "#ef4444"},
+    {source: "Sample Data", count: sampleSamples.length, color: "#10b981"}
+  ];
+  
+  if (comparisonData.every(d => d.count === 0)) {
+    return html`<div style="text-align: center; padding: 2rem; color: #6b7280;">
+      <h4>Data Type Comparison</h4>
+      <p>No data available for comparison</p>
+    </div>`;
+  }
+  
   return Plot.plot({
-    title: "Data Type Comparison - Sample Count by Component",
+    title: "Data Source Distribution",
     width,
     height: 300,
-    x: {label: "Component"},
-    y: {label: "Sample Count"},
-    color: {legend: true},
+    x: {label: "Data Source"},
+    y: {label: "Record Count"},
     marks: [
-      Plot.barY(currentSamples, Plot.groupX({y: "count"}, {x: "component", fill: "current"})),
-      Plot.barY(sampleSamples, Plot.groupX({y: "count"}, {x: "component", fill: "sample", dx: 20}))
+      Plot.barY(comparisonData, {
+        x: "source",
+        y: "count",
+        fill: "color",
+        title: d => `${d.source}: ${d.count} records`
+      }),
+      Plot.text(comparisonData, {
+        x: "source",
+        y: d => d.count + 5,
+        text: d => d.count.toString(),
+        fontSize: 14,
+        fontWeight: "bold"
+      })
     ]
   });
 }
@@ -370,13 +431,20 @@ function dataTypeComparisonChart(samplesData, eventsData, {width} = {}) {
 
 ```js
 function overrideChart(data, {width} = {}) {
-  const overrideData = data.filter(d => ["Fovr", "Frapidovr"].includes(d.item));
+  const overrideData = data.filter(d => ["Fovr", "Frapidovr"].includes(d.item) && d.ts && isFinite(d.value));
+  
+  if (overrideData.length === 0) {
+    return html`<div style="text-align: center; padding: 2rem; color: #6b7280;">
+      <h4>Feed & Rapid Override</h4>
+      <p>No override data available</p>
+    </div>`;
+  }
   
   return Plot.plot({
     title: "Feed & Rapid Override",
     width,
     height: 300,
-    x: {type: "time", nice: true},
+    x: {type: "time", nice: true, label: null},
     y: {label: "Override (%)"},
     color: {legend: true},
     marks: [
@@ -393,8 +461,15 @@ function overrideChart(data, {width} = {}) {
 ```js
 function stateTimelineChart(data, {width} = {}) {
   const stateData = data.filter(d => 
-    ["estop", "execution", "mode", "avail"].includes(d.item)
+    ["estop", "execution", "mode", "avail"].includes(d.item) && d.ts
   );
+  
+  if (stateData.length === 0) {
+    return html`<div style="text-align: center; padding: 2rem; color: #6b7280;">
+      <h4>Machine State Timeline</h4>
+      <p>No state timeline data available</p>
+    </div>`;
+  }
   
   // Add next timestamp for rectangle width
   const stateTimelineData = stateData.map((d, i) => ({
@@ -406,7 +481,7 @@ function stateTimelineChart(data, {width} = {}) {
     title: "Machine State Timeline",
     width,
     height: 200,
-    x: {type: "time"},
+    x: {type: "time", label: null},
     y: {type: "band", domain: ["estop", "execution", "mode", "avail"]},
     color: {legend: true},
     marks: [
@@ -424,38 +499,32 @@ function stateTimelineChart(data, {width} = {}) {
 
 <!-- Enhanced Charts Layout -->
 
-<div class="grid grid-cols-2">
-  <div class="card">
-    ${resize((width) => axisPositionsChart(samples, {width}))}
-  </div>
-  <div class="card">
-    ${resize((width) => axisLoadsChart(samples, {width}))}
-  </div>
-</div>
+```js
+display(html`<div class="grid grid-cols-2">
+  <div class="card">${resize((width) => axisPositionsChart(samples, {width}))}</div>
+  <div class="card">${resize((width) => axisLoadsChart(samples, {width}))}</div>
+</div>`)
+```
 
-<div class="grid grid-cols-2">
-  <div class="card">
-    ${resize((width) => spindleChart(samples, {width}))}
-  </div>
-  <div class="card">
-    ${resize((width) => powerChart(samples, {width}))}
-  </div>
-</div>
+```js
+display(html`<div class="grid grid-cols-2">
+  <div class="card">${resize((width) => spindleChart(samples, {width}))}</div>
+  <div class="card">${resize((width) => powerChart(samples, {width}))}</div>
+</div>`)
+```
 
-<div class="grid grid-cols-2">
-  <div class="card">
-    ${resize((width) => dataTypeComparisonChart(samples, events, {width}))}
-  </div>
-  <div class="card">
-    ${resize((width) => overrideChart(events, {width}))}
-  </div>
-</div>
+```js
+display(html`<div class="grid grid-cols-2">
+  <div class="card">${resize((width) => dataTypeComparisonChart(samples, events, {width}))}</div>
+  <div class="card">${resize((width) => overrideChart(events, {width}))}</div>
+</div>`)
+```
 
-<div class="grid grid-cols-1">
-  <div class="card">
-    ${resize((width) => stateTimelineChart(events, {width}))}
-  </div>
-</div>
+```js
+display(html`<div class="grid grid-cols-1">
+  <div class="card">${resize((width) => stateTimelineChart(events, {width}))}</div>
+</div>`)
+```
 
 <!-- Current Status Summary -->
 
@@ -485,9 +554,8 @@ const latestLoads = samples.filter(d => /(X|Y|Z)load|Sload/.test(d.item))
 
 // Enhanced spindle RPM calculation
 const latestSpindleRPM = samples.filter(d => d.item === "Srpm").slice(-1)[0]?.value || 0;
-```
 
-<div class="grid grid-cols-2">
+display(html`<div class="grid grid-cols-2">
   <div class="card">
     <h3>Current Position</h3>
     <ul>
@@ -505,11 +573,13 @@ const latestSpindleRPM = samples.filter(d => d.item === "Srpm").slice(-1)[0]?.va
       <li>Power: ${latestPower.toFixed(1)} kW</li>
     </ul>
   </div>
-</div>
+</div>`)
+```
 
 <!-- Enhanced Performance Metrics with Better Organization -->
 
-<div class="grid grid-cols-2">
+```js
+display(html`<div class="grid grid-cols-2">
   <div class="card">
     <h3>System Loads</h3>
     <ul>
@@ -528,11 +598,13 @@ const latestSpindleRPM = samples.filter(d => d.item === "Srpm").slice(-1)[0]?.va
       <li>Data Coverage: ${((samples.length + events.length) / 1000).toFixed(1)}K data points</li>
     </ul>
   </div>
-</div>
+</div>`)
+```
 
 <!-- Enhanced Power Analysis with Error Handling -->
 
-<div class="card">
+```js
+display(html`<div class="card">
   <h3>Power Analysis</h3>
   <div class="grid grid-cols-4">
     <div style="text-align: center;">
@@ -552,18 +624,18 @@ const latestSpindleRPM = samples.filter(d => d.item === "Srpm").slice(-1)[0]?.va
       <div style="font-size: 0.8em; color: gray;">Efficiency</div>
     </div>
   </div>
-</div>
+</div>`)
+```
 
 <!-- Conditions Table -->
 
 ```js
 const abnormalConditions = conditions.filter(d => d.state !== "Normal" && d.state !== "#text");
-```
 
-<div class="card">
+display(html`<div class="card">
   <h3>System Conditions</h3>
   ${abnormalConditions.length === 0 ? 
-    "All systems showing Normal status ✅" : 
+    html`<p>All systems showing Normal status ✅</p>` : 
     Inputs.table(abnormalConditions.map(d => ({
       Timestamp: d.ts.toLocaleString(),
       Component: d.component,
@@ -572,13 +644,18 @@ const abnormalConditions = conditions.filter(d => d.state !== "Normal" && d.stat
       "Data Type": d.dataType
     })))
   }
-</div>
+</div>`)
+```
 
 ---
 
-*Dashboard updated: ${new Date().toLocaleString()}*
+```js
+display(html`<div>
+<p><em>Dashboard updated: ${new Date().toLocaleString()}</em></p>
 
-**Data Sources:** Combined processed MTConnect data from ${machineInfo.length} files  
-**Machine:** Mazak VTC 300 CNC  
-**Total Data Points:** ${(samples.length + events.length + conditions.length).toLocaleString()}  
-**Power Monitoring:** ${powerData.length} power readings
+<p><strong>Data Sources:</strong> Combined processed MTConnect data from ${machineInfo.length} files<br/>
+<strong>Machine:</strong> Mazak VTC 300 CNC<br/>
+<strong>Total Data Points:</strong> ${(samples.length + events.length + conditions.length).toLocaleString()}<br/>
+<strong>Power Monitoring:</strong> ${powerData.length} power readings</p>
+</div>`)
+```

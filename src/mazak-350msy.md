@@ -204,6 +204,9 @@ samples.sort((a, b) => a.ts - b.ts);
 events.sort((a, b) => a.ts - b.ts);
 conditions.sort((a, b) => a.ts - b.ts);
 
+const samplesData = samples;
+const eventsData = events;
+
 // Debug info
 console.log("Debug: Combined samples:", samples.length);
 console.log("Debug: Combined events:", events.length);
@@ -262,7 +265,8 @@ const hasPositionData = positions.X !== 0 || positions.Y !== 0 || positions.Z !=
 const hasLoadData = loads.X !== 0 || loads.Y !== 0 || loads.Z !== 0 || loads.Spindle !== 0;
 ```
 
-<div class="hero">
+```js
+display(html`<div class="hero">
   <h2 style="margin: 0; font-size: 2rem;">Mazak 350MSY - 5-Axis Manufacturing Center</h2>
   <p style="margin: 0.5rem 0 0 0; opacity: 0.9;">Advanced 5-axis CNC machining center with rotary table capabilities</p>
   <p style="margin: 0.5rem 0 0 0; opacity: 0.8;">
@@ -284,7 +288,7 @@ const hasLoadData = loads.X !== 0 || loads.Y !== 0 || loads.Z !== 0 || loads.Spi
       Conditions: ${conditions.length.toLocaleString()}
     </span>
   </div>
-  ${!hasSampleData || !hasEventData ? `
+  ${!hasSampleData || !hasEventData ? html`
     <div style="margin-top: 1rem; padding: 1rem; background: rgba(255,255,255,0.1); border-radius: 0.5rem;">
       ⚠️ Limited data available for this machine. This may be due to:
       <ul style="text-align: left; margin: 0.5rem 0; padding-left: 1.5rem;">
@@ -294,11 +298,13 @@ const hasLoadData = loads.X !== 0 || loads.Y !== 0 || loads.Z !== 0 || loads.Spi
       </ul>
     </div>
   ` : ''}
-</div>
+</div>`)
+```
 
 ## Key Performance Indicators
 
-<div class="grid grid-cols-4">
+```js
+display(html`<div class="grid grid-cols-4">
   <div class="metric-card">
     <div class="metric-value">${positions.X.toFixed(2)}</div>
     <div class="metric-label">X Position (mm)</div>
@@ -315,9 +321,11 @@ const hasLoadData = loads.X !== 0 || loads.Y !== 0 || loads.Z !== 0 || loads.Spi
     <div class="metric-value" style="color: ${latestEvents.avail === 'AVAILABLE' ? '#10b981' : '#f59e0b'}">${latestEvents.avail || 'Unknown'}</div>
     <div class="metric-label">Machine Status</div>
   </div>
-</div>
+</div>`)
+```
 
-<div class="performance-section">
+```js
+display(html`<div class="performance-section">
   <h3 style="margin-top: 0;">Performance Metrics</h3>
   <div class="grid grid-cols-4">
     <div class="metric-card">
@@ -337,11 +345,13 @@ const hasLoadData = loads.X !== 0 || loads.Y !== 0 || loads.Z !== 0 || loads.Spi
       <div class="metric-label">Spindle RPM</div>
     </div>
   </div>
-</div>
+</div>`)
+```
 
 ## Data Diagnostics
 
-<div class="card" style="background: #f0f9ff; border-left: 4px solid #3b82f6;">
+```js
+display(html`<div class="card" style="background: #f0f9ff; border-left: 4px solid #3b82f6;">
   <h3 style="color: #1e40af;">Data Source Analysis</h3>
   <div style="font-family: monospace; font-size: 0.875rem;">
     <p><strong>Machine:</strong> Mazak 350MSY (${currentData.device.name} - ${currentData.device.uuid})</p>
@@ -350,12 +360,13 @@ const hasLoadData = loads.X !== 0 || loads.Y !== 0 || loads.Z !== 0 || loads.Spi
     <p><strong>Condition Data:</strong> ${conditions.length} records</p>
     <p><strong>Position Data Available:</strong> ${hasPositionData ? '✅ Yes' : '❌ No'}</p>
     <p><strong>Load Data Available:</strong> ${hasLoadData ? '✅ Yes' : '❌ No'}</p>
-    ${samples.length > 0 ? `
+    ${samples.length > 0 ? html`
       <p><strong>Sample Items:</strong> ${[...new Set(samples.map(d => d.item))].join(', ')}</p>
-    ` 
+    ` : ''}
     <p><strong>Data Quality:</strong> Using original JSON files for optimal data integrity</p>
   </div>
-</div>
+</div>`)
+```
 
 <!-- Chart functions -->
 
@@ -669,96 +680,74 @@ function stateTimelineChart(data, {width} = {}) {
 
 ## Linear Axis Monitoring
 
-${hasSampleData ? `
-<div class="axis-grid">
-  <div class="card">
-    ${resize((width) => xAxisPositionWidget(samples, {width}))}
-  </div>
-  <div class="card">
-    ${resize((width) => yAxisPositionWidget(samples, {width}))}
-  </div>
-  <div class="card">
-    ${resize((width) => zAxisPositionWidget(samples, {width}))}
-  </div>
-</div>
-` : `
-<div class="card" style="background: #f3f4f6; text-align: center; padding: 3rem;">
-  <h3 style="color: #6b7280;">No Linear Axis Data Available</h3>
-  <p style="color: #9ca3af;">Axis position data is not currently available for this machine.</p>
-</div>
-`}
+```js
+display(hasSampleData
+  ? html`<div class="axis-grid">
+      <div class="card">${resize((width) => xAxisPositionWidget(samples, {width}))}</div>
+      <div class="card">${resize((width) => yAxisPositionWidget(samples, {width}))}</div>
+      <div class="card">${resize((width) => zAxisPositionWidget(samples, {width}))}</div>
+    </div>`
+  : html`<div class="card" style="background: #f3f4f6; text-align: center; padding: 3rem;">
+      <h3 style="color: #6b7280;">No Linear Axis Data Available</h3>
+      <p style="color: #9ca3af;">Axis position data is not currently available for this machine.</p>
+    </div>`)
+```
 
 ## Machine Performance & Status
 
-${hasSampleData ? `
-<div class="grid grid-cols-2">
-  <div class="card">
-    ${resize((width) => axisLoadsGauge(samples, {width}))}
-  </div>
-  <div class="card">
-    ${resize((width) => spindleChart(samples, {width}))}
-  </div>
-</div>
-` : `
-<div class="card" style="background: #f3f4f6; text-align: center; padding: 3rem;">
-  <h3 style="color: #6b7280;">No Performance Data Available</h3>
-  <p style="color: #9ca3af;">Machine performance metrics are not currently available.</p>
-</div>
-`}
+```js
+display(hasSampleData
+  ? html`<div class="grid grid-cols-2">
+      <div class="card">${resize((width) => axisLoadsGauge(samples, {width}))}</div>
+      <div class="card">${resize((width) => spindleChart(samples, {width}))}</div>
+    </div>`
+  : html`<div class="card" style="background: #f3f4f6; text-align: center; padding: 3rem;">
+      <h3 style="color: #6b7280;">No Performance Data Available</h3>
+      <p style="color: #9ca3af;">Machine performance metrics are not currently available.</p>
+    </div>`)
+```
 
 ## 5-Axis Capabilities & Data Analysis
 
-<div class="grid grid-cols-2">
-  ${hasSampleData ? `
-  <div class="card">
-    ${resize((width) => rotaryAxisChart(samples, {width}))}
-  </div>
-  ` : `
-  <div class="card" style="background: #f3f4f6; text-align: center; padding: 2rem;">
-    <h4 style="color: #6b7280;">No Rotary Axis Data</h4>
-    <p style="color: #9ca3af;">B & C axis data not available</p>
-  </div>
-  `}
-  <div class="card">
-    ${resize((width) => dataTypeComparisonChart(samplesData, eventsData, {width}))}
-  </div>
-</div>
+```js
+display(html`<div class="grid grid-cols-2">
+  ${hasSampleData 
+    ? html`<div class="card">${resize((width) => rotaryAxisChart(samples, {width}))}</div>` 
+    : html`<div class="card" style="background: #f3f4f6; text-align: center; padding: 2rem;">
+        <h4 style="color: #6b7280;">No Rotary Axis Data</h4>
+        <p style="color: #9ca3af;">B & C axis data not available</p>
+      </div>`}
+  <div class="card">${resize((width) => dataTypeComparisonChart(samplesData, eventsData, {width}))}</div>
+</div>`)
+```
 
-<div class="grid grid-cols-2">
-  ${hasEventData ? `
-  <div class="card">
-    ${resize((width) => overrideChart(events, {width}))}
-  </div>
-  ` : `
-  <div class="card" style="background: #f3f4f6; text-align: center; padding: 2rem;">
-    <h4 style="color: #6b7280;">No Override Data</h4>
-    <p style="color: #9ca3af;">Feed & rapid override data not available</p>
-  </div>
-  `}
-  ${hasSampleData ? `
-  <div class="card">
-    ${resize((width) => axisPositionsChart(samples, {width}))}
-  </div>
-  ` : `
-  <div class="card" style="background: #f3f4f6; text-align: center; padding: 2rem;">
-    <h4 style="color: #6b7280;">No Position Data</h4>
-    <p style="color: #9ca3af;">Axis position trends not available</p>
-  </div>
-  `}
-</div>
+```js
+display(html`<div class="grid grid-cols-2">
+  ${hasEventData 
+    ? html`<div class="card">${resize((width) => overrideChart(events, {width}))}</div>` 
+    : html`<div class="card" style="background: #f3f4f6; text-align: center; padding: 2rem;">
+        <h4 style="color: #6b7280;">No Override Data</h4>
+        <p style="color: #9ca3af;">Feed & rapid override data not available</p>
+      </div>`}
+  ${hasSampleData 
+    ? html`<div class="card">${resize((width) => axisPositionsChart(samples, {width}))}</div>` 
+    : html`<div class="card" style="background: #f3f4f6; text-align: center; padding: 2rem;">
+        <h4 style="color: #6b7280;">No Position Data</h4>
+        <p style="color: #9ca3af;">Axis position trends not available</p>
+      </div>`}
+</div>`)
+```
 
 ## Machine State & Timeline
 
-${hasEventData ? `
-<div class="card">
-  ${resize((width) => stateTimelineChart(events, {width}))}
-</div>
-` : `
-<div class="card" style="background: #f3f4f6; text-align: center; padding: 3rem;">
-  <h3 style="color: #6b7280;">No State Timeline Data Available</h3>
-  <p style="color: #9ca3af;">Machine state and timeline information is not currently available.</p>
-</div>
-`}
+```js
+display(hasEventData
+  ? html`<div class="card">${resize((width) => stateTimelineChart(events, {width}))}</div>`
+  : html`<div class="card" style="background: #f3f4f6; text-align: center; padding: 3rem;">
+      <h3 style="color: #6b7280;">No State Timeline Data Available</h3>
+      <p style="color: #9ca3af;">Machine state and timeline information is not currently available.</p>
+    </div>`)
+```
 
 ## Detailed Status Information
 
@@ -776,9 +765,8 @@ const axisStates = events.filter(d => d.item.includes('axisstate'))
     acc[d.item] = d.value;
     return acc;
   }, {});
-```
 
-<div class="performance-section">
+display(html`<div class="performance-section">
   <div class="grid grid-cols-3">
     <div class="metric-card">
       <h4 style="margin-top: 0; color: #4b5563;">Linear Axes Position</h4>
@@ -833,18 +821,18 @@ const axisStates = events.filter(d => d.item.includes('axisstate'))
       </div>
     </div>
   </div>
-</div>
+</div>`)
+```
 
 <!-- Conditions Table -->
 
 ```js
 const abnormalConditions = conditions.filter(d => d.state !== "Normal" && d.state !== "#text");
-```
 
-<div class="card">
+display(html`<div class="card">
   <h3>System Conditions</h3>
   ${abnormalConditions.length === 0 ? 
-    "All systems showing Normal status ✅" : 
+    html`<p>All systems showing Normal status ✅</p>` : 
     Inputs.table(abnormalConditions.map(d => ({
       Timestamp: d.ts.toLocaleString(),
       Component: d.component,
@@ -853,13 +841,17 @@ const abnormalConditions = conditions.filter(d => d.state !== "Normal" && d.stat
       "Data Type": d.dataType
     })))
   }
-</div>
+</div>`)
+```
 
 ---
 
-*Dashboard updated: ${new Date().toLocaleString()}*
+```js
+display(html`<div>
+<p><em>Dashboard updated: ${new Date().toLocaleString()}</em></p>
 
-**Data Sources:** Original JSON files (Current & Sample data)  
-**Machine:** Mazak 350MSY 5-axis CNC (${currentData.device.name} - ${currentData.device.uuid})  
-**Total Data Points:** ${(samples.length + events.length + conditions.length).toLocaleString()}  
-**5-Axis Capability:** Linear (X,Y,Z) + Rotary (B,C) axes monitoring
+<p><strong>Data Sources:</strong> Original JSON files (Current & Sample data)<br/>
+<strong>Machine:</strong> Mazak 350MSY 5-axis CNC (${currentData.device.name} - ${currentData.device.uuid})<br/>
+<strong>Total Data Points:</strong> ${(samples.length + events.length + conditions.length).toLocaleString()}<br/>
+<strong>5-Axis Capability:</strong> Linear (X,Y,Z) + Rotary (B,C) axes monitoring</p>
+</div>`)

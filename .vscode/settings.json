@@ -1,0 +1,4 @@
+{
+    "gitlens.ai.openaicompatible.url": "https://api.302.ai/v1/chat/completions",
+    "gitlens.ai.vscode.model": "llama3.2-70b-instruct"
+}

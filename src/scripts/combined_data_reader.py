@@ -449,6 +449,20 @@ class CombinedDataReader:
         
         logger.info(f"All DataFrames saved to {output_directory}")
     
+    def _prepare_for_parquet(self) -> None:
+        """Prepare DataFrames for Parquet format by ensuring consistent data types for 'value' columns."""
+        value_columns = {
+            'samples_df': ['value'],
+            'events_df': ['value'],
+            'conditions_df': ['value'],
+        }
+        for df_name, columns in value_columns.items():
+            df = getattr(self, df_name)
+            if df is not None:
+                for col in columns:
+                    if col in df.columns:
+                        df[col] = df[col].astype(str)
+
     def save_to_parquet(self, output_directory: str) -> None:
         """
         Save all DataFrames to Parquet files for better performance.
@@ -457,15 +471,13 @@ class CombinedDataReader:
             output_directory (str): Directory to save Parquet files
         """
         os.makedirs(output_directory, exist_ok=True)
-        
+        self._prepare_for_parquet()
         dataframes = self.get_dataframes()
-        
         for name, df in dataframes.items():
             if df is not None and not df.empty:
                 output_path = os.path.join(output_directory, f"{name}.parquet")
                 df.to_parquet(output_path, index=False)
                 logger.info(f"Saved {name} to {output_path}")
-        
         logger.info(f"All DataFrames saved to {output_directory}")
 
 
@@ -474,8 +486,8 @@ def main():
     Main function to demonstrate usage of the CombinedDataReader.
     """
     # Configuration
-    data_directory = "/Users/tingxu/Local/observability/src/data/combined"
-    output_directory = "/Users/tingxu/Local/observability/src/data/processed"
+    data_directory = "src/data/combined"
+    output_directory = "src/data/processed"
     
     # Initialize reader
     reader = CombinedDataReader(data_directory)
