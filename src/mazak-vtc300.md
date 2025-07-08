@@ -6,75 +6,70 @@ toc: false
 
 # MTConnect Dashboard for Mazak VTC 300
 
-This dashboard provides real-time monitoring of the Mazak VTC 300 machine using MTConnect data streams.
+This dashboard provides real-time monitoring of the Mazak VTC 300 machine using processed MTConnect data streams with enhanced analytics and error handling.
 
-<!-- Load and normalize the MTConnect data -->
+<!-- Load and process the combined MTConnect data -->
 
 ```js
-const rawData = FileAttachment("data/vtc300.json").json();
+// Load processed data from CSV files
+const samplesData = FileAttachment("data/processed/samples.csv").csv({typed: true});
+const eventsData = FileAttachment("data/processed/events.csv").csv({typed: true});
+const conditionsData = FileAttachment("data/processed/conditions.csv").csv({typed: true});
+const metadataData = FileAttachment("data/processed/metadata.csv").csv({typed: true});
 ```
 
 ```js
-// Normalize nested stream structure into flat typed arrays
-const samples = [];
-const events = [];
-const conditions = [];
+// Filter data for VTC 300 machine
+const machineName = "mazak_2_vtc_300";
 
-// Extract samples, events, and conditions from all components
-Object.entries(rawData.device.components).forEach(([componentId, component]) => {
-  // Process samples
-  if (component.samples) {
-    Object.entries(component.samples).forEach(([itemId, sample]) => {
-      if (sample.value !== null && sample.value !== undefined) {
-        samples.push({
-          component: componentId,
-          item: itemId,
-          subtype: sample.subType || null,
-          ts: new Date(sample.timestamp),
-          value: Number(sample.value)
-        });
-      }
-    });
-  }
-  
-  // Process events
-  if (component.events) {
-    Object.entries(component.events).forEach(([itemId, event]) => {
-      if (event.value !== null && event.value !== undefined) {
-        // Use number if possible, otherwise string
-        const num = Number(event.value);
-        events.push({
-          component: componentId,
-          item: itemId,
-          ts: new Date(event.timestamp),
-          value: (!isNaN(num) && isFinite(num)) ? num : String(event.value)
-        });
-      }
-    });
-  }
-  
-  // Process conditions
-  if (component.conditions) {
-    Object.entries(component.conditions).forEach(([itemId, condition]) => {
-      conditions.push({
-        component: componentId,
-        item: itemId,
-        ts: new Date(condition.timestamp),
-        state: condition.state,
-        category: condition.category
-      });
-    });
-  }
-});
+// Filter and process samples data with enhanced validation
+const samples = samplesData
+  .filter(d => d.machine_name === machineName)
+  .map(d => ({
+    component: d.component_id,
+    item: d.sample_name,
+    subtype: d.sub_type,
+    ts: new Date(d.timestamp),
+    value: +d.value,
+    machine: d.machine_name,
+    dataType: d.data_type
+  }))
+  .filter(d => !isNaN(d.value) && isFinite(d.value))
+  .sort((a, b) => a.ts - b.ts);
 
-// Sort by timestamp
-samples.sort((a, b) => a.ts - b.ts);
-events.sort((a, b) => a.ts - b.ts);
-conditions.sort((a, b) => a.ts - b.ts);
+// Filter and process events data
+const events = eventsData
+  .filter(d => d.machine_name === machineName)
+  .map(d => ({
+    component: d.component_id,
+    item: d.event_name,
+    ts: new Date(d.timestamp),
+    value: isNaN(+d.value) ? d.value : +d.value,
+    machine: d.machine_name,
+    dataType: d.data_type
+  }))
+  .sort((a, b) => a.ts - b.ts);
+
+// Filter and process conditions data
+const conditions = conditionsData
+  .filter(d => d.machine_name === machineName)
+  .map(d => ({
+    component: d.component_id,
+    item: d.condition_name,
+    ts: new Date(d.timestamp),
+    state: d.state,
+    category: d.category,
+    machine: d.machine_name,
+    dataType: d.data_type
+  }))
+  .sort((a, b) => a.ts - b.ts);
+
+// Get machine metadata
+const machineInfo = metadataData.filter(d => d.machine_name === machineName);
 ```
 
 ```js
-// Calculate KPI values from the latest data
+// Calculate KPI values with proper error handling
 const latestSamples = samples.filter(d => 
   ['auto_time', 'cut_time', 'total_time'].includes(d.item)
 ).reduce((acc, d) => {
@@ -88,22 +83,67 @@ const latestEvents = events.filter(d =>
   acc[d.item] = d.value;
   return acc;
 }, {});
+
+// Enhanced efficiency metrics with validation
+const totalTime = Math.max(latestSamples.total_time || 0, 1); // Avoid division by zero
+const cutTime = latestSamples.cut_time || 0;
+const autoTime = latestSamples.auto_time || 0;
+
+// Cap efficiency at 100% to avoid calculation errors
+const efficiency = Math.min(totalTime > 0 ? (cutTime / totalTime * 100) : 0, 100);
+const utilization = Math.min(totalTime > 0 ? (autoTime / totalTime * 100) : 0, 100);
+
+// Enhanced power calculations with validation
+const powerData = samples.filter(d => d.item === "power" && isFinite(d.value));
+const latestPower = powerData.slice(-1)[0]?.value || 0;
+const avgPower = powerData.length > 0 ? 
+  powerData.reduce((sum, d) => sum + d.value, 0) / powerData.length : 0;
+const maxPower = powerData.length > 0 ? Math.max(...powerData.map(d => d.value)) : 0;
 ```
 
-<!-- KPI Cards -->
+<!-- Machine Status Header with Enhanced Styling -->
 
-<div class="grid grid-cols-3">
+<div class="hero" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 2rem; border-radius: 1rem; text-align: center; margin: 2rem 0; box-shadow: 0 4px 20px rgba(0,0,0,0.1);">
+  <h2 style="margin: 0; font-size: 2rem;">Mazak VTC 300 - Live Status</h2>
+  <p style="margin: 0.5rem 0 0 0; opacity: 0.9;">
+    Data Sources: ${machineInfo.length} files | 
+    Last Updated: ${new Date(Math.max(...samples.map(d => d.ts), ...events.map(d => d.ts))).toLocaleString()}
+  </p>
+  <div style="margin-top: 1rem; display: flex; justify-content: center; gap: 1rem; flex-wrap: wrap;">
+    <span style="padding: 0.5rem 1rem; background: rgba(255,255,255,0.2); border-radius: 0.5rem;">
+      Samples: ${samples.length.toLocaleString()}
+    </span>
+    <span style="padding: 0.5rem 1rem; background: rgba(255,255,255,0.2); border-radius: 0.5rem;">
+      Events: ${events.length.toLocaleString()}
+    </span>
+    <span style="padding: 0.5rem 1rem; background: rgba(255,255,255,0.2); border-radius: 0.5rem;">
+      Conditions: ${conditions.length.toLocaleString()}
+    </span>
+  </div>
+</div>
+
+<!-- Enhanced KPI Cards -->
+
+<div class="grid grid-cols-4">
   <div class="card">
     <h2>Auto Time</h2>
     <span class="big">${(latestSamples.auto_time / 3600).toFixed(1)} hrs</span>
+    <small>Automatic operation time</small>
   </div>
   <div class="card">
     <h2>Cut Time</h2>
     <span class="big">${(latestSamples.cut_time / 3600).toFixed(1)} hrs</span>
+    <small>Active cutting time</small>
   </div>
   <div class="card">
     <h2>Total Time</h2>
     <span class="big">${(latestSamples.total_time / 3600).toFixed(1)} hrs</span>
+    <small>Total operation time</small>
+  </div>
+  <div class="card">
+    <h2>Efficiency</h2>
+    <span class="big" style="color: ${efficiency > 70 ? 'green' : efficiency > 50 ? 'orange' : 'red'}">${efficiency.toFixed(1)}%</span>
+    <small>Cut time / Total time</small>
   </div>
 </div>
 
@@ -122,14 +162,32 @@ const latestEvents = events.filter(d =>
   </div>
 </div>
 
-<!-- Chart functions -->
+<!-- Enhanced Chart functions with better error handling -->
 
 ```js
 function axisPositionsChart(data, {width} = {}) {
   const positionData = data.filter(d => /[XYZ]abs/.test(d.item));
   
+  if (positionData.length === 0) {
+    return Plot.plot({
+      title: "Axis Positions Over Time",
+      width,
+      height: 300,
+      marks: [
+        Plot.text([{ts: new Date(), value: 0}], {
+          x: "ts", 
+          y: "value", 
+          text: ["No position data available"],
+          fontSize: 14,
+          fill: "gray",
+          textAnchor: "middle"
+        })
+      ]
+    });
+  }
+  
   return Plot.plot({
-    title: "Axis Positions",
+    title: "Axis Positions Over Time",
     width,
     height: 300,
     x: {type: "time", nice: true, label: null},
@@ -141,6 +199,12 @@ function axisPositionsChart(data, {width} = {}) {
         y: "value", 
         stroke: "item", 
         curve: "step"
+      }),
+      Plot.dot(positionData.filter((d, i) => i % 10 === 0), {
+        x: "ts", 
+        y: "value", 
+        fill: "item", 
+        r: 2
       })
     ]
   });
@@ -170,7 +234,8 @@ function axisLoadsChart(data, {width} = {}) {
         y: "value", 
         stroke: "red",
         strokeWidth: 2
-      })
+      }),
+      Plot.ruleY([0], {stroke: "gray", strokeDasharray: "2,2"})
     ]
   });
 }
@@ -178,7 +243,28 @@ function axisLoadsChart(data, {width} = {}) {
 
 ```js
 function spindleChart(data, {width} = {}) {
-  const spindleData = data.filter(d => d.item === "Srpm");
+  const spindleData = data.filter(d => d.item === "Srpm" && !isNaN(d.value) && d.value !== null);
+  
+  // Handle case when no valid spindle data is available
+  if (spindleData.length === 0) {
+    return Plot.plot({
+      title: "Spindle RPM",
+      width,
+      height: 300,
+      x: {type: "time", nice: true},
+      y: {label: "RPM", domain: [0, 1000]},
+      marks: [
+        Plot.text([{ts: new Date(), value: 500}], {
+          x: "ts", 
+          y: "value", 
+          text: ["No spindle data available"],
+          fontSize: 14,
+          fill: "gray",
+          textAnchor: "middle"
+        })
+      ]
+    });
+  }
   
   return Plot.plot({
     title: "Spindle RPM",
@@ -191,7 +277,92 @@ function spindleChart(data, {width} = {}) {
         x: "ts", 
         y: "value", 
         stroke: "red"
+      }),
+      Plot.area(spindleData, {
+        x: "ts", 
+        y: "value", 
+        fill: "red",
+        fillOpacity: 0.1
       })
+    ]
+  });
+}
+```
+
+```js
+function powerChart(data, {width} = {}) {
+  const powerData = data.filter(d => d.item === "power" && isFinite(d.value));
+  
+  if (powerData.length === 0) {
+    return Plot.plot({
+      title: "Machine Power Consumption",
+      width,
+      height: 300,
+      x: {type: "time", nice: true},
+      y: {label: "Power (kW)", domain: [0, 10]},
+      marks: [
+        Plot.text([{ts: new Date(), value: 5}], {
+          x: "ts", 
+          y: "value", 
+          text: ["No power data available"],
+          fontSize: 14,
+          fill: "gray",
+          textAnchor: "middle"
+        })
+      ]
+    });
+  }
+  
+  const avgPowerValue = powerData.reduce((sum, d) => sum + d.value, 0) / powerData.length;
+  
+  return Plot.plot({
+    title: "Machine Power Consumption",
+    width,
+    height: 300,
+    x: {type: "time", nice: true},
+    y: {label: "Power (kW)"},
+    marks: [
+      Plot.line(powerData, {
+        x: "ts", 
+        y: "value", 
+        stroke: "steelblue"
+      }),
+      Plot.area(powerData, {
+        x: "ts", 
+        y: "value", 
+        fill: "steelblue",
+        fillOpacity: 0.2
+      }),
+      Plot.ruleY([avgPowerValue], {stroke: "red", strokeDasharray: "3,3"}),
+      Plot.text([powerData[Math.floor(powerData.length/2)]], {
+        x: [powerData[Math.floor(powerData.length/2)]?.ts],
+        y: [avgPowerValue],
+        text: [`Avg: ${avgPowerValue.toFixed(1)} kW`],
+        fontSize: 12,
+        fill: "red",
+        dy: -10
+      })
+    ]
+  });
+}
+```
+
+```js
+function dataTypeComparisonChart(samplesData, eventsData, {width} = {}) {
+  // Compare current vs sample data types
+  const currentSamples = samplesData.filter(d => d.dataType === "current");
+  const sampleSamples = samplesData.filter(d => d.dataType === "sample");
+  
+  return Plot.plot({
+    title: "Data Type Comparison - Sample Count by Component",
+    width,
+    height: 300,
+    x: {label: "Component"},
+    y: {label: "Sample Count"},
+    color: {legend: true},
+    marks: [
+      Plot.barY(currentSamples, Plot.groupX({y: "count"}, {x: "component", fill: "current"})),
+      Plot.barY(sampleSamples, Plot.groupX({y: "count"}, {x: "component", fill: "sample", dx: 20}))
     ]
   });
 }
@@ -220,27 +391,6 @@ function overrideChart(data, {width} = {}) {
 ```
 
 ```js
-function powerChart(data, {width} = {}) {
-  const powerData = data.filter(d => d.item === "power");
-  
-  return Plot.plot({
-    title: "Machine Power Consumption",
-    width,
-    height: 300,
-    x: {type: "time", nice: true},
-    y: {label: "Power (kW)"},
-    marks: [
-      Plot.line(powerData, {
-        x: "ts", 
-        y: "value", 
-        stroke: "steelblue"
-      })
-    ]
-  });
-}
-```
-
-```js
 function stateTimelineChart(data, {width} = {}) {
   const stateData = data.filter(d => 
     ["estop", "execution", "mode", "avail"].includes(d.item)
@@ -255,7 +405,7 @@ function stateTimelineChart(data, {width} = {}) {
   return Plot.plot({
     title: "Machine State Timeline",
     width,
-    height: 150,
+    height: 200,
     x: {type: "time"},
     y: {type: "band", domain: ["estop", "execution", "mode", "avail"]},
     color: {legend: true},
@@ -272,7 +422,7 @@ function stateTimelineChart(data, {width} = {}) {
 }
 ```
 
-<!-- Charts Layout -->
+<!-- Enhanced Charts Layout -->
 
 <div class="grid grid-cols-2">
   <div class="card">
@@ -294,8 +444,14 @@ function stateTimelineChart(data, {width} = {}) {
 
 <div class="grid grid-cols-2">
   <div class="card">
+    ${resize((width) => dataTypeComparisonChart(samples, events, {width}))}
+  </div>
+  <div class="card">
     ${resize((width) => overrideChart(events, {width}))}
   </div>
+</div>
+
+<div class="grid grid-cols-1">
   <div class="card">
     ${resize((width) => stateTimelineChart(events, {width}))}
   </div>
@@ -320,8 +476,15 @@ const latestProgram = events.filter(d => ["program", "Tool_number"].includes(d.i
     return acc;
   }, {});
 
-// Get latest power consumption
-const latestPower = samples.filter(d => d.item === "power").slice(-1)[0]?.value || 0;
+// Get latest load values
+const latestLoads = samples.filter(d => /(X|Y|Z)load|Sload/.test(d.item))
+  .reduce((acc, d) => {
+    acc[d.item] = d.value;
+    return acc;
+  }, {});
+
+// Enhanced spindle RPM calculation
+const latestSpindleRPM = samples.filter(d => d.item === "Srpm").slice(-1)[0]?.value || 0;
 ```
 
 <div class="grid grid-cols-2">
@@ -338,48 +501,63 @@ const latestPower = samples.filter(d => d.item === "power").slice(-1)[0]?.value 
     <ul>
       <li>Program: ${latestProgram.program || 'N/A'}</li>
       <li>Tool: ${latestProgram.Tool_number || 'N/A'}</li>
-      <li>Spindle RPM: ${samples.filter(d => d.item === "Srpm").slice(-1)[0]?.value || 0}</li>
+      <li>Spindle RPM: ${latestSpindleRPM.toFixed(0)}</li>
       <li>Power: ${latestPower.toFixed(1)} kW</li>
     </ul>
   </div>
 </div>
 
-<!-- Performance Metrics -->
+<!-- Enhanced Performance Metrics with Better Organization -->
 
-## Performance Metrics
-
-```js
-// Calculate efficiency metrics
-const totalTime = latestSamples.total_time || 0;
-const cutTime = latestSamples.cut_time || 0;
-const autoTime = latestSamples.auto_time || 0;
-
-const efficiency = totalTime > 0 ? (cutTime / totalTime * 100) : 0;
-const utilization = totalTime > 0 ? (autoTime / totalTime * 100) : 0;
-```
-
-<div class="grid grid-cols-3">
+<div class="grid grid-cols-2">
   <div class="card">
-    <h3>Cutting Efficiency</h3>
-    <span class="big" style="color: ${efficiency > 70 ? 'green' : efficiency > 50 ? 'orange' : 'red'}">${efficiency.toFixed(1)}%</span>
-    <p>Cut time / Total time</p>
+    <h3>System Loads</h3>
+    <ul>
+      <li>X Load: <span style="color: ${Math.abs(latestLoads.Xload || 0) > 80 ? 'red' : 'green'}">${latestLoads.Xload?.toFixed(1) || 'N/A'}%</span></li>
+      <li>Y Load: <span style="color: ${Math.abs(latestLoads.Yload || 0) > 80 ? 'red' : 'green'}">${latestLoads.Yload?.toFixed(1) || 'N/A'}%</span></li>
+      <li>Z Load: <span style="color: ${Math.abs(latestLoads.Zload || 0) > 80 ? 'red' : 'green'}">${latestLoads.Zload?.toFixed(1) || 'N/A'}%</span></li>
+      <li>Spindle Load: <span style="color: ${Math.abs(latestLoads.Sload || 0) > 80 ? 'red' : 'green'}">${latestLoads.Sload?.toFixed(1) || 'N/A'}%</span></li>
+    </ul>
   </div>
   <div class="card">
-    <h3>Machine Utilization</h3>
-    <span class="big" style="color: ${utilization > 80 ? 'green' : utilization > 60 ? 'orange' : 'red'}">${utilization.toFixed(1)}%</span>
-    <p>Auto time / Total time</p>
+    <h3>Performance Metrics</h3>
+    <ul>
+      <li>Cutting Efficiency: <span style="color: ${efficiency > 70 ? 'green' : efficiency > 50 ? 'orange' : 'red'}">${efficiency.toFixed(1)}%</span></li>
+      <li>Machine Utilization: <span style="color: ${utilization > 80 ? 'green' : utilization > 60 ? 'orange' : 'red'}">${utilization.toFixed(1)}%</span></li>
+      <li>Average Power: <span style="color: ${avgPower > 0 ? 'green' : 'orange'}">${avgPower.toFixed(1)} kW</span></li>
+      <li>Data Coverage: ${((samples.length + events.length) / 1000).toFixed(1)}K data points</li>
+    </ul>
   </div>
-  <div class="card">
-    <h3>Average Power</h3>
-    <span class="big">${(samples.filter(d => d.item === "power").reduce((sum, d) => sum + d.value, 0) / samples.filter(d => d.item === "power").length || 0).toFixed(1)} kW</span>
-    <p>Power consumption</p>
+</div>
+
+<!-- Enhanced Power Analysis with Error Handling -->
+
+<div class="card">
+  <h3>Power Analysis</h3>
+  <div class="grid grid-cols-4">
+    <div style="text-align: center;">
+      <strong style="font-size: 1.2em; color: steelblue;">${latestPower.toFixed(1)} kW</strong>
+      <div style="font-size: 0.8em; color: gray;">Current</div>
+    </div>
+    <div style="text-align: center;">
+      <strong style="font-size: 1.2em; color: green;">${avgPower.toFixed(1)} kW</strong>
+      <div style="font-size: 0.8em; color: gray;">Average</div>
+    </div>
+    <div style="text-align: center;">
+      <strong style="font-size: 1.2em; color: red;">${maxPower.toFixed(1)} kW</strong>
+      <div style="font-size: 0.8em; color: gray;">Peak</div>
+    </div>
+    <div style="text-align: center;">
+      <strong style="font-size: 1.2em; color: orange;">${(efficiency * avgPower / 100).toFixed(1)} kW</strong>
+      <div style="font-size: 0.8em; color: gray;">Efficiency</div>
+    </div>
   </div>
 </div>
 
 <!-- Conditions Table -->
 
 ```js
-const abnormalConditions = conditions.filter(d => d.state !== "Normal");
+const abnormalConditions = conditions.filter(d => d.state !== "Normal" && d.state !== "#text");
 ```
 
 <div class="card">
@@ -390,7 +568,8 @@ const abnormalConditions = conditions.filter(d => d.state !== "Normal");
       Timestamp: d.ts.toLocaleString(),
       Component: d.component,
       Category: d.category,
-      State: d.state
+      State: d.state,
+      "Data Type": d.dataType
     })))
   }
 </div>
@@ -399,4 +578,7 @@ const abnormalConditions = conditions.filter(d => d.state !== "Normal");
 
 *Dashboard updated: ${new Date().toLocaleString()}*
 
-Data: MTConnect stream from Mazak VTC 300 CNC machine
+**Data Sources:** Combined processed MTConnect data from ${machineInfo.length} files  
+**Machine:** Mazak VTC 300 CNC  
+**Total Data Points:** ${(samples.length + events.length + conditions.length).toLocaleString()}  
+**Power Monitoring:** ${powerData.length} power readings

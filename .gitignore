@@ -3,7 +3,12 @@
 node_modules/
 yarn-error.log
 
-src/data/
 .venv/
 
 .claude/
+
+.env
+
+load-env.sh
+
+src/data/

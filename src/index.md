@@ -6,7 +6,7 @@ toc: false
   <h1>bhs-observability</h1>
   <h2>Welcome to your new app! Edit&nbsp;<code style="font-size: 90%;">src/index.md</code> to change this page.</h2>
   <a href="https://observablehq.com/framework/getting-started">Get started<span style="display: inline-block; margin-left: 0.25rem;">↗︎</span></a>
-</div>
+ </div>
 
 <div class="grid grid-cols-2" style="grid-auto-rows: 504px;">
   <div class="card">${
@@ -63,7 +63,7 @@ Here are some ideas of things you could try…
     Ask for help, or share your work or ideas, on our <a href="https://github.com/observablehq/framework/discussions">GitHub discussions</a>.
   </div>
   <div class="card">
-    Visit <a href="https://github.com/observablehq/framework">Framework on GitHub</a> and give us a star. Or file an issue if you’ve found a bug!
+    Visit <a href="https://github.com/observablehq/framework">Framework on GitHub</a> and give us a star. Or file an issue if you've found a bug!
   </div>
 </div>
 
@@ -109,3 +109,6 @@ Here are some ideas of things you could try…
 }
 
 </style>
+
+</div>
+*Dashboard generated: ${new Date().toLocaleString()}*
