@@ -258,6 +258,56 @@ function spindleChart(data, {width} = {}) {
 ```
 
 ```js
+function powerChart(data, {width} = {}) {
+  const powerData = data.filter(d => 
+    d.item === "power" && 
+    d.ts && 
+    d.ts instanceof Date && 
+    isFinite(d.value)
+  );
+  
+  if (powerData.length === 0) {
+    return html`<div style="text-align: center; padding: 2rem; color: #6b7280;">
+      <h4>Machine Power Consumption</h4>
+      <p>No power data available</p>
+    </div>`;
+  }
+  
+  try {
+    const avgPowerValue = powerData.reduce((sum, d) => sum + d.value, 0) / powerData.length;
+    
+    return Plot.plot({
+      title: "Machine Power Consumption",
+      width,
+      height: 300,
+      x: {type: "time", nice: true, label: null},
+      y: {label: "Power (kW)"},
+      marks: [
+        Plot.line(powerData, {
+          x: "ts", 
+          y: "value", 
+          stroke: "steelblue"
+        }),
+        Plot.area(powerData, {
+          x: "ts", 
+          y: "value", 
+          fill: "steelblue",
+          fillOpacity: 0.2
+        }),
+        Plot.ruleY([avgPowerValue], {stroke: "red", strokeDasharray: "3,3"})
+      ]
+    });
+  } catch (error) {
+    console.error("Error creating power chart:", error);
+    return html`<div style="text-align: center; padding: 2rem; color: #ef4444;">
+      <h4>Machine Power Consumption</h4>
+      <p>Error rendering chart: ${error.message}</p>
+    </div>`;
+  }
+}
+```
+
+```js
 function dataTypeComparisonChart(samplesData, eventsData, {width} = {}) {
   // Compare current vs sample data types
   const currentSamples = samplesData.filter(d => d.dataType === "current");
@@ -347,6 +397,12 @@ function stateTimelineChart(data, {width} = {}) {
   <div class="card">
     ${resize((width) => spindleChart(samples, {width}))}
   </div>
+  <div class="card">
+    ${resize((width) => powerChart(samples, {width}))}
+  </div>
+</div>
+
+<div class="grid grid-cols-1">
   <div class="card">
     ${resize((width) => dataTypeComparisonChart(samples, events, {width}))}
   </div>
