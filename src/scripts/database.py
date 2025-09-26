@@ -131,11 +131,12 @@ def setup_constraints(cur):
             print(f"Added {constraint_name} constraint")
         except psycopg2.errors.DuplicateTable:
             print(f"{constraint_name} constraint already exists")
+        except psycopg2.errors.DuplicateObject:
+            print(f"{constraint_name} constraint already exists")
         except Exception as e:
             print(f"Error setting up {constraint_name}: {e}")
-            # Rollback the transaction on error
-            cur.connection.rollback()
-            raise
+            # Don't rollback on constraint errors, just continue
+            continue
 
 def process_xml_file(cur, xml_file, preview_mode=False):
     """Process a single XML file and insert data into database"""
@@ -471,6 +472,9 @@ def main():
 
         # Create tables
         create_tables(cur)
+        
+        # Setup constraints
+        setup_constraints(cur)
 
         # Process XML files
         if args.file:

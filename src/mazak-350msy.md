@@ -83,180 +83,119 @@ toc: false
 <!-- Load and process the combined MTConnect data -->
 
 ```js
-// Load original JSON data files directly for better data quality
-let latestCurrent, latestSample;
-
-try {
-  latestCurrent = FileAttachment("data/json/mazak-3-350msy_current_20250707_140831.json").json();
-  latestSample = FileAttachment("data/json/mazak-3-350msy_sample_20250707_140831.json").json();
-  
-  console.log("Debug: Files loaded successfully");
-  console.log("Debug: Current data keys:", Object.keys(latestCurrent));
-  console.log("Debug: Sample data keys:", Object.keys(latestSample));
-} catch (error) {
-  console.error("Error loading files:", error);
-  // Fallback to empty data
-  latestCurrent = { device: { name: "Mazak", uuid: "Unknown", components: {} } };
-  latestSample = { device: { name: "Mazak", uuid: "Unknown", components: {} } };
-}
+// Load machine-specific optimized data for better performance and accuracy
+const samplesData = FileAttachment("data/optimized/mazak_3_350msy/recent/samples_recent.csv").csv({typed: true});
+const eventsData = FileAttachment("data/optimized/mazak_3_350msy/recent/events_recent.csv").csv({typed: true});
+const conditionsData = FileAttachment("data/optimized/mazak_3_350msy/conditions.csv").csv({typed: true});
+const metadataData = FileAttachment("data/optimized/mazak_3_350msy/metadata.csv").csv({typed: true});
 ```
 
 ```js
-// Process current data (comprehensive structure but many null values)
-const currentData = latestCurrent;
-const currentComponents = currentData.device.components;
+// Process machine-specific data (already filtered for 350MSY)
+const machineName = "mazak_3_350msy";
 
-// Process sample data (limited structure but real values)
-const sampleData = latestSample;
-const sampleComponents = sampleData.device.components;
+// Process samples data with enhanced validation
+const samples = samplesData
+  .map(d => ({
+    component: d.component_id,
+    item: d.sample_name,
+    subtype: d.sub_type,
+    ts: new Date(d.timestamp),
+    value: +d.value,
+    machine: d.machine_name,
+    dataType: d.data_type
+  }))
+  .filter(d => !isNaN(d.value) && isFinite(d.value) && d.value !== null)
+  .sort((a, b) => a.ts - b.ts);
 
-// Extract samples from both data sources
-const samples = [];
-const events = [];
-const conditions = [];
+// Process events data with better null handling
+const events = eventsData
+  .map(d => ({
+    component: d.component_id,
+    item: d.event_name,
+    ts: new Date(d.timestamp),
+    value: d.value != null && String(d.value).trim() !== '' ? (isNaN(+d.value) ? d.value : +d.value) : null,
+    machine: d.machine_name,
+    dataType: d.data_type
+  }))
+  .filter(d => d.value !== null && d.value !== undefined && d.value !== '')
+  .sort((a, b) => a.ts - b.ts);
 
-// Process current data
-Object.entries(currentComponents).forEach(([componentId, component]) => {
-  // Process samples
-  if (component.samples) {
-    Object.entries(component.samples).forEach(([itemId, sample]) => {
-      if (sample.value !== null && sample.value !== undefined) {
-        samples.push({
-          component: componentId,
-          item: itemId,
-          subtype: sample.subType,
-          ts: new Date(sample.timestamp),
-          value: Number(sample.value),
-          source: 'current'
-        });
-      }
-    });
-  }
-  
-  // Process events
-  if (component.events) {
-    Object.entries(component.events).forEach(([itemId, event]) => {
-      if (event.value !== null && event.value !== undefined) {
-        const num = Number(event.value);
-        events.push({
-          component: componentId,
-          item: itemId,
-          ts: new Date(event.timestamp),
-          value: (!isNaN(num) && isFinite(num)) ? num : String(event.value),
-          source: 'current'
-        });
-      }
-    });
-  }
-  
-  // Process conditions (keep all, even with #text state)
-  if (component.conditions) {
-    Object.entries(component.conditions).forEach(([itemId, condition]) => {
-      conditions.push({
-        component: componentId,
-        item: itemId,
-        ts: new Date(condition.timestamp),
-        state: condition.state,
-        category: condition.category,
-        source: 'current'
-      });
-    });
-  }
-});
+// Process conditions data
+const conditions = conditionsData
+  .map(d => ({
+    component: d.component_id,
+    item: d.condition_name,
+    ts: new Date(d.timestamp),
+    state: d.state,
+    category: d.category,
+    machine: d.machine_name,
+    dataType: d.data_type
+  }))
+  .sort((a, b) => a.ts - b.ts);
 
-// Process sample data (this has the real values!)
-Object.entries(sampleComponents).forEach(([componentId, component]) => {
-  // Process samples
-  if (component.samples) {
-    Object.entries(component.samples).forEach(([itemId, sample]) => {
-      if (sample.value !== null && sample.value !== undefined) {
-        samples.push({
-          component: componentId,
-          item: itemId,
-          subtype: sample.subType,
-          ts: new Date(sample.timestamp),
-          value: Number(sample.value),
-          source: 'sample'
-        });
-      }
-    });
-  }
-  
-  // Process events
-  if (component.events) {
-    Object.entries(component.events).forEach(([itemId, event]) => {
-      if (event.value !== null && event.value !== undefined) {
-        const num = Number(event.value);
-        events.push({
-          component: componentId,
-          item: itemId,
-          ts: new Date(event.timestamp),
-          value: (!isNaN(num) && isFinite(num)) ? num : String(event.value),
-          source: 'sample'
-        });
-      }
-    });
-  }
-});
-
-// Sort by timestamp
-samples.sort((a, b) => a.ts - b.ts);
-events.sort((a, b) => a.ts - b.ts);
-conditions.sort((a, b) => a.ts - b.ts);
-
-const samplesData = samples;
-const eventsData = events;
+// Get machine metadata
+const machineInfo = metadataData;
 
 // Debug info
-console.log("Debug: Combined samples:", samples.length);
-console.log("Debug: Combined events:", events.length);
+console.log("Debug: Processed samples:", samples.length);
+console.log("Debug: Processed events:", events.length);
 console.log("Debug: Available sample items:", [...new Set(samples.map(d => d.item))]);
 console.log("Debug: Available event items:", [...new Set(events.map(d => d.item))]);
 ```
 
 ```js
-// Get the latest values from both data sources
+// Calculate KPI values with proper error handling
 const latestSamples = samples.reduce((acc, d) => {
-  acc[d.item] = d.value;
+  // Get the latest value for each item
+  if (!acc[d.item] || d.ts > acc[d.item].ts) {
+    acc[d.item] = d;
+  }
   return acc;
 }, {});
 
 const latestEvents = events.reduce((acc, d) => {
-  acc[d.item] = d.value;
+  // Get the latest value for each item
+  if (!acc[d.item] || d.ts > acc[d.item].ts) {
+    acc[d.item] = d;
+  }
   return acc;
 }, {});
 
-// Debug: Show what we found
-console.log("Debug: Latest samples found:", latestSamples);
-console.log("Debug: Latest events found:", latestEvents);
+// Enhanced efficiency metrics with validation
+const autoTime = latestSamples.auto_time?.value || 0;
+const cutTime = latestSamples.cut_time?.value || 0;
 
-// Calculate efficiency metrics from time data if available
-const totalTime = latestSamples.total_time || 0;
-const cutTime = latestSamples.cut_time || 0;
-const autoTime = latestSamples.auto_time || 0;
+// Calculate efficiency metrics
+const efficiency = autoTime > 0 ? Math.min((cutTime / autoTime * 100), 100) : 0;
+const utilization = autoTime > 0 ? Math.min((autoTime / (autoTime + 3600) * 100), 100) : 0;
 
-const efficiency = totalTime > 0 ? (cutTime / totalTime * 100) : 0;
-const utilization = totalTime > 0 ? (autoTime / totalTime * 100) : 0;
-
-// Get position data
+// Get position data (5-axis positions)
 const positions = {
-  X: latestSamples.Xabs || 0,
-  Y: latestSamples.Yabs || 0,
-  Z: latestSamples.Zabs || 0,
-  B: latestSamples.Babs || 0,
-  C: latestSamples.Cabs || 0
+  X: latestSamples.Xabs?.value || 0,
+  Y: latestSamples.Yabs?.value || 0,
+  Z: latestSamples.Zabs?.value || 0,
+  B: latestSamples.Babs?.value || 0,
+  C: latestSamples.Cabs?.value || 0
 };
 
 // Get load data
 const loads = {
-  X: latestSamples.Xload || 0,
-  Y: latestSamples.Yload || 0,
-  Z: latestSamples.Zload || 0,
-  Spindle: latestSamples.Sload || 0
+  X: latestSamples.Xload?.value || 0,
+  Y: latestSamples.Yload?.value || 0,
+  Z: latestSamples.Zload?.value || 0,
+  Spindle: latestSamples.Sload?.value || 0
 };
 
 // Get spindle data
-const spindleRPM = latestSamples.Srpm || 0;
+const spindleRPM = latestSamples.Srpm?.value || 0;
+
+// Machine status
+const machineStatus = {
+  availability: latestEvents.avail?.value || 'Unknown',
+  mode: latestEvents.mode?.value || 'Unknown',
+  estop: latestEvents.estop?.value || 'Unknown'
+};
 
 // Check data availability
 const hasSampleData = samples.length > 0;
@@ -273,10 +212,10 @@ display(html`<div class="hero">
     Data Sources: Current & Sample JSON files | 
     Last Updated: ${samples.length > 0 || events.length > 0 ? new Date(Math.max(...[...samples, ...events].map(d => d.ts))).toLocaleString() : 'No data available'}
   </p>
-  <div class="machine-status">
-    <div class="status-indicator ${latestEvents.avail === 'AVAILABLE' ? 'status-running' : 'status-idle'}"></div>
-    <span>System ${latestEvents.avail === 'AVAILABLE' ? 'Online' : latestEvents.avail || 'Unknown'}</span>
-  </div>
+    <div class="machine-status">
+      <div class="status-indicator ${machineStatus.availability === 'AVAILABLE' ? 'status-running' : 'status-idle'}"></div>
+      <span>System ${machineStatus.availability === 'AVAILABLE' ? 'Online' : machineStatus.availability}</span>
+    </div>
   <div style="margin-top: 1rem; display: flex; justify-content: center; gap: 1rem;">
     <span style="padding: 0.5rem 1rem; background: rgba(255,255,255,0.2); border-radius: 0.5rem;">
       Samples: ${samples.length.toLocaleString()}
@@ -317,10 +256,10 @@ display(html`<div class="grid grid-cols-4">
     <div class="metric-value">${positions.Z.toFixed(2)}</div>
     <div class="metric-label">Z Position (mm)</div>
   </div>
-  <div class="metric-card">
-    <div class="metric-value" style="color: ${latestEvents.avail === 'AVAILABLE' ? '#10b981' : '#f59e0b'}">${latestEvents.avail || 'Unknown'}</div>
-    <div class="metric-label">Machine Status</div>
-  </div>
+    <div class="metric-card">
+      <div class="metric-value" style="color: ${machineStatus.availability === 'AVAILABLE' ? '#10b981' : '#f59e0b'}">${machineStatus.availability}</div>
+      <div class="metric-label">Machine Status</div>
+    </div>
 </div>`)
 ```
 
@@ -354,7 +293,7 @@ display(html`<div class="performance-section">
 display(html`<div class="card" style="background: #f0f9ff; border-left: 4px solid #3b82f6;">
   <h3 style="color: #1e40af;">Data Source Analysis</h3>
   <div style="font-family: monospace; font-size: 0.875rem;">
-    <p><strong>Machine:</strong> Mazak 350MSY (${currentData.device.name} - ${currentData.device.uuid})</p>
+    <p><strong>Machine:</strong> Mazak 350MSY (${machineName})</p>
     <p><strong>Sample Data:</strong> ${samples.length} records</p>
     <p><strong>Event Data:</strong> ${events.length} records</p>
     <p><strong>Condition Data:</strong> ${conditions.length} records</p>
@@ -363,7 +302,7 @@ display(html`<div class="card" style="background: #f0f9ff; border-left: 4px soli
     ${samples.length > 0 ? html`
       <p><strong>Sample Items:</strong> ${[...new Set(samples.map(d => d.item))].join(', ')}</p>
     ` : ''}
-    <p><strong>Data Quality:</strong> Using original JSON files for optimal data integrity</p>
+    <p><strong>Data Quality:</strong> Using optimized CSV files for optimal performance</p>
   </div>
 </div>`)
 ```
@@ -406,24 +345,29 @@ function xAxisPositionWidget(data, {width} = {}) {
   const xData = data.filter(d => d.item === "Xabs");
   const latestX = positions?.X ?? 0;
   if (!xData || xData.length === 0) {
-    return html`<div style="text-align: center; padding: 2rem; color: #6b7280;"><h4>X Axis Position</h4><div style="font-size: 2rem; font-weight: bold; color: #1f77b4;">${latestX.toFixed(2)} mm</div><p>Current position from sample data</p></div>`;
+    return html`<div style="text-align: center; padding: 2rem; color: #6b7280;"><h4>X Axis Position</h4><div style="font-size: 2rem; font-weight: bold; color: #1f77b4;">${latestX.toFixed(2)} mm</div><p>Current position from latest sample</p></div>`;
   }
+  
+  // Limit data points for performance
+  const maxPoints = 100;
+  const step = Math.max(1, Math.floor(xData.length / maxPoints));
+  const sampledData = xData.filter((d, i) => i % step === 0);
   return Plot.plot({
-    title: "X Axis Position",
+    title: `X Axis Position (${sampledData.length} of ${xData.length} points)`,
     width,
     height: 200,
     x: {type: "time", nice: true, label: null},
     y: {label: "Position (mm)"},
     marks: [
-      Plot.line(xData, {
+      Plot.line(sampledData, {
         x: "ts", 
         y: "value", 
         stroke: "#1f77b4",
         strokeWidth: 2
       }),
       Plot.ruleY([latestX], {stroke: "red", strokeDasharray: "3,3"}),
-      Plot.text([xData[xData.length - 1]?.ts || new Date()], {
-        x: [xData[xData.length - 1]?.ts || new Date()],
+      Plot.text([sampledData[sampledData.length - 1]?.ts || new Date()], {
+        x: [sampledData[sampledData.length - 1]?.ts || new Date()],
         y: [latestX],
         text: [`${latestX.toFixed(2)} mm`],
         fontSize: 12,
@@ -440,24 +384,29 @@ function yAxisPositionWidget(data, {width} = {}) {
   const yData = data.filter(d => d.item === "Yabs");
   const latestY = positions?.Y ?? 0;
   if (!yData || yData.length === 0) {
-    return html`<div style="text-align: center; padding: 2rem; color: #6b7280;"><h4>Y Axis Position</h4><div style="font-size: 2rem; font-weight: bold; color: #ff7f0e;">${latestY.toFixed(2)} mm</div><p>Current position from sample data</p></div>`;
+    return html`<div style="text-align: center; padding: 2rem; color: #6b7280;"><h4>Y Axis Position</h4><div style="font-size: 2rem; font-weight: bold; color: #ff7f0e;">${latestY.toFixed(2)} mm</div><p>Current position from latest sample</p></div>`;
   }
+  
+  // Limit data points for performance
+  const maxPoints = 100;
+  const step = Math.max(1, Math.floor(yData.length / maxPoints));
+  const sampledData = yData.filter((d, i) => i % step === 0);
   return Plot.plot({
-    title: "Y Axis Position",
+    title: `Y Axis Position (${sampledData.length} of ${yData.length} points)`,
     width,
     height: 200,
     x: {type: "time", nice: true, label: null},
     y: {label: "Position (mm)"},
     marks: [
-      Plot.line(yData, {
+      Plot.line(sampledData, {
         x: "ts", 
         y: "value", 
         stroke: "#ff7f0e",
         strokeWidth: 2
       }),
       Plot.ruleY([latestY], {stroke: "red", strokeDasharray: "3,3"}),
-      Plot.text([yData[yData.length - 1]?.ts || new Date()], {
-        x: [yData[yData.length - 1]?.ts || new Date()],
+      Plot.text([sampledData[sampledData.length - 1]?.ts || new Date()], {
+        x: [sampledData[sampledData.length - 1]?.ts || new Date()],
         y: [latestY],
         text: [`${latestY.toFixed(2)} mm`],
         fontSize: 12,
@@ -474,24 +423,29 @@ function zAxisPositionWidget(data, {width} = {}) {
   const zData = data.filter(d => d.item === "Zabs");
   const latestZ = positions?.Z ?? 0;
   if (!zData || zData.length === 0) {
-    return html`<div style="text-align: center; padding: 2rem; color: #6b7280;"><h4>Z Axis Position</h4><div style="font-size: 2rem; font-weight: bold; color: #2ca02c;">${latestZ.toFixed(2)} mm</div><p>Current position from sample data</p></div>`;
+    return html`<div style="text-align: center; padding: 2rem; color: #6b7280;"><h4>Z Axis Position</h4><div style="font-size: 2rem; font-weight: bold; color: #2ca02c;">${latestZ.toFixed(2)} mm</div><p>Current position from latest sample</p></div>`;
   }
+  
+  // Limit data points for performance
+  const maxPoints = 100;
+  const step = Math.max(1, Math.floor(zData.length / maxPoints));
+  const sampledData = zData.filter((d, i) => i % step === 0);
   return Plot.plot({
-    title: "Z Axis Position",
+    title: `Z Axis Position (${sampledData.length} of ${zData.length} points)`,
     width,
     height: 200,
     x: {type: "time", nice: true, label: null},
     y: {label: "Position (mm)"},
     marks: [
-      Plot.line(zData, {
+      Plot.line(sampledData, {
         x: "ts", 
         y: "value", 
         stroke: "#2ca02c",
         strokeWidth: 2
       }),
       Plot.ruleY([latestZ], {stroke: "red", strokeDasharray: "3,3"}),
-      Plot.text([zData[zData.length - 1]?.ts || new Date()], {
-        x: [zData[zData.length - 1]?.ts || new Date()],
+      Plot.text([sampledData[sampledData.length - 1]?.ts || new Date()], {
+        x: [sampledData[sampledData.length - 1]?.ts || new Date()],
         y: [latestZ],
         text: [`${latestZ.toFixed(2)} mm`],
         fontSize: 12,
@@ -616,12 +570,17 @@ function rotaryAxisChart(data, {width} = {}) {
 
 ```js
 function dataTypeComparisonChart(samplesData, eventsData, {width} = {}) {
-  const currentSamples = samples.filter(d => d.source === "current");
-  const sampleSamples = samples.filter(d => d.source === "sample");
+  const currentSamples = samples.filter(d => d.dataType === "current");
+  const sampleSamples = samples.filter(d => d.dataType === "sample");
   const comparisonData = [
     {source: "Current Data", count: currentSamples.length, color: "#ef4444"},
     {source: "Sample Data", count: sampleSamples.length, color: "#10b981"}
   ];
+  
+  if (comparisonData.every(d => d.count === 0)) {
+    return html`<div style="text-align: center; padding: 2rem; color: #6b7280;">No data source information available</div>`;
+  }
+  
   return Plot.plot({
     title: "Data Source Distribution",
     width,
@@ -752,19 +711,14 @@ display(hasEventData
 ## Detailed Status Information
 
 ```js
-// Get latest tool and program info
-const latestProgram = events.filter(d => ["program", "Tool_number"].includes(d.item))
-  .reduce((acc, d) => {
-    acc[d.item] = d.value;
-    return acc;
-  }, {});
+// Get latest tool and program info from events
+const latestProgram = {
+  program: latestEvents.program?.value || 'N/A',
+  Tool_number: latestEvents.Tool_number?.value || 'N/A'
+};
 
-// Get axis state information
-const axisStates = events.filter(d => d.item.includes('axisstate'))
-  .reduce((acc, d) => {
-    acc[d.item] = d.value;
-    return acc;
-  }, {});
+// Get axis state information (if available)
+const axisStates = {};
 
 display(html`<div class="performance-section">
   <div class="grid grid-cols-3">
@@ -806,16 +760,16 @@ display(html`<div class="performance-section">
     <div class="metric-card">
       <h4 style="margin-top: 0; color: #4b5563;">Machine Mode</h4>
       <div style="display: grid; gap: 0.5rem; font-family: monospace;">
-        <div>Mode: <strong>${latestEvents.mode || 'Unknown'}</strong></div>
-        <div>Availability: <strong style="color: ${latestEvents.avail === 'AVAILABLE' ? '#10b981' : '#f59e0b'}">${latestEvents.avail || 'Unknown'}</strong></div>
-        <div>E-Stop: <strong style="color: ${latestEvents.estop === 'ARMED' ? '#10b981' : '#ef4444'}">${latestEvents.estop || 'Unknown'}</strong></div>
+        <div>Mode: <strong>${machineStatus.mode}</strong></div>
+        <div>Availability: <strong style="color: ${machineStatus.availability === 'AVAILABLE' ? '#10b981' : '#f59e0b'}">${machineStatus.availability}</strong></div>
+        <div>E-Stop: <strong style="color: ${machineStatus.estop === 'ARMED' ? '#10b981' : '#ef4444'}">${machineStatus.estop}</strong></div>
       </div>
     </div>
     <div class="metric-card">
       <h4 style="margin-top: 0; color: #4b5563;">Data Summary</h4>
       <div style="display: grid; gap: 0.5rem; font-family: monospace;">
-        <div>Current Data: <strong>${samples.filter(d => d.source === "current").length.toLocaleString()}</strong></div>
-        <div>Sample Data: <strong>${samples.filter(d => d.source === "sample").length.toLocaleString()}</strong></div>
+        <div>Current Data: <strong>${samples.filter(d => d.dataType === "current").length.toLocaleString()}</strong></div>
+        <div>Sample Data: <strong>${samples.filter(d => d.dataType === "sample").length.toLocaleString()}</strong></div>
         <div>Total Events: <strong>${events.length.toLocaleString()}</strong></div>
         <div>Conditions: <strong>${conditions.length.toLocaleString()}</strong></div>
       </div>
@@ -850,8 +804,8 @@ display(html`<div class="card">
 display(html`<div>
 <p><em>Dashboard updated: ${new Date().toLocaleString()}</em></p>
 
-<p><strong>Data Sources:</strong> Original JSON files (Current & Sample data)<br/>
-<strong>Machine:</strong> Mazak 350MSY 5-axis CNC (${currentData.device.name} - ${currentData.device.uuid})<br/>
+<p><strong>Data Sources:</strong> Optimized CSV files (Recent data)<br/>
+<strong>Machine:</strong> Mazak 350MSY 5-axis CNC (${machineName})<br/>
 <strong>Total Data Points:</strong> ${(samples.length + events.length + conditions.length).toLocaleString()}<br/>
 <strong>5-Axis Capability:</strong> Linear (X,Y,Z) + Rotary (B,C) axes monitoring</p>
 </div>`)

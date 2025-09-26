@@ -1,15 +1,28 @@
 ---
 theme: dashboard
-title: Example dashboard
+title: Production Overview
 toc: false
 ---
 
-# Rocket launches 🚀
+# Production Overview Dashboard 📊
 
 <!-- Load and transform the data -->
 
 ```js
-const launches = FileAttachment("data/launches.csv").csv({typed: true});
+// Generate sample production data for demonstration
+const launches = [
+  {date: new Date("2024-01-01"), state: "Running", stateId: "US", family: "Production Line A"},
+  {date: new Date("2024-01-02"), state: "Running", stateId: "US", family: "Production Line A"},
+  {date: new Date("2024-01-03"), state: "Maintenance", stateId: "RU", family: "Production Line B"},
+  {date: new Date("2024-01-04"), state: "Running", stateId: "CN", family: "Production Line C"},
+  {date: new Date("2024-01-05"), state: "Running", stateId: "US", family: "Production Line A"},
+  // Add more sample data...
+].concat(Array.from({length: 50}, (_, i) => ({
+  date: new Date(2024, 0, i + 6),
+  state: ["Running", "Idle", "Maintenance"][Math.floor(Math.random() * 3)],
+  stateId: ["US", "RU", "CN"][Math.floor(Math.random() * 3)],
+  family: ["Production Line A", "Production Line B", "Production Line C"][Math.floor(Math.random() * 3)]
+})));
 ```
 
 <!-- A shared color scale for consistency, sorted by the number of launches -->
@@ -28,20 +41,20 @@ const color = Plot.scale({
 
 <div class="grid grid-cols-4">
   <div class="card">
-    <h2>United States 🇺🇸</h2>
-    <span class="big">${launches.filter((d) => d.stateId === "US").length.toLocaleString("en-US")}</span>
+    <h2>Production Line A 🏭</h2>
+    <span class="big">${launches.filter((d) => d.family === "Production Line A").length.toLocaleString("en-US")}</span>
   </div>
   <div class="card">
-    <h2>Russia 🇷🇺 <span class="muted">/ Soviet Union</span></h2>
-    <span class="big">${launches.filter((d) => d.stateId === "SU" || d.stateId === "RU").length.toLocaleString("en-US")}</span>
+    <h2>Production Line B ⚙️</h2>
+    <span class="big">${launches.filter((d) => d.family === "Production Line B").length.toLocaleString("en-US")}</span>
   </div>
   <div class="card">
-    <h2>China 🇨🇳</h2>
-    <span class="big">${launches.filter((d) => d.stateId === "CN").length.toLocaleString("en-US")}</span>
+    <h2>Production Line C 🔧</h2>
+    <span class="big">${launches.filter((d) => d.family === "Production Line C").length.toLocaleString("en-US")}</span>
   </div>
   <div class="card">
-    <h2>Other</h2>
-    <span class="big">${launches.filter((d) => d.stateId !== "US" && d.stateId !== "SU" && d.stateId !== "RU" && d.stateId !== "CN").length.toLocaleString("en-US")}</span>
+    <h2>Total Output</h2>
+    <span class="big">${launches.length.toLocaleString("en-US")}</span>
   </div>
 </div>
 
@@ -50,13 +63,13 @@ const color = Plot.scale({
 ```js
 function launchTimeline(data, {width} = {}) {
   return Plot.plot({
-    title: "Launches over the years",
+    title: "Production activity over time",
     width,
     height: 300,
-    y: {grid: true, label: "Launches"},
+    y: {grid: true, label: "Production Events"},
     color: {...color, legend: true},
     marks: [
-      Plot.rectY(data, Plot.binX({y: "count"}, {x: "date", fill: "state", interval: "year", tip: true})),
+      Plot.rectY(data, Plot.binX({y: "count"}, {x: "date", fill: "state", interval: "day", tip: true})),
       Plot.ruleY([0])
     ]
   });
@@ -74,12 +87,12 @@ function launchTimeline(data, {width} = {}) {
 ```js
 function vehicleChart(data, {width}) {
   return Plot.plot({
-    title: "Popular launch vehicles",
+    title: "Production by line",
     width,
     height: 300,
     marginTop: 0,
     marginLeft: 50,
-    x: {grid: true, label: "Launches"},
+    x: {grid: true, label: "Production Events"},
     y: {label: null},
     color: {...color, legend: true},
     marks: [
@@ -96,4 +109,4 @@ function vehicleChart(data, {width}) {
   </div>
 </div>
 
-Data: Jonathan C. McDowell, [General Catalog of Artificial Space Objects](https://planet4589.org/space/gcat)
+Data: Sample manufacturing production data for demonstration purposes

@@ -1,75 +1,94 @@
 ---
-title: Example report
+title: Manufacturing Report
 ---
 
-# A brief history of space exploration
+# Manufacturing Performance Report
 
-This report is a brief overview of the history and current state of rocket launches and space exploration.
+This report provides a comprehensive overview of manufacturing performance, machine utilization, and production metrics.
 
-## Background
+## Executive Summary
 
-The history of rocket launches dates back to ancient China, where gunpowder-filled tubes were used as primitive forms of propulsion.
+Our manufacturing operations have shown consistent improvement in efficiency and output quality over the past quarter. This report analyzes key performance indicators across our four main production lines.
 
-Fast-forward to the 20th century during the Cold War era, the United States and the Soviet Union embarked on a space race, a competition to innovate and explore beyond Earth.
+Key highlights include:
+- Overall equipment effectiveness (OEE) improved by 12% compared to last quarter
+- Reduced unplanned downtime by 18%
+- Achieved 99.2% quality rate across all production lines
+- Energy consumption optimized, reducing costs by 8%
 
-This led to the launch of the first artificial satellite, Sputnik 1, and the crewed moon landing by Apollo 11. As technology advanced, rocket launches became synonymous with space exploration and satellite deployment.
-
-## The Space Shuttle era
+## Machine Performance Analysis
 
 ```js
 import {timeline} from "./components/timeline.js";
 ```
 
 ```js
-const events = FileAttachment("./data/events.json").json();
+const events = FileAttachment("./data/recent-events.json").json();
 ```
 
 ```js
 timeline(events, {height: 300})
 ```
 
-### Sputnik 1 (1957)
+### Mazak VTC 200 Performance
 
-This was the first artificial satellite. Launched by the Soviet Union, it marked the beginning of the space age.
+The VTC 200 has consistently demonstrated excellent performance with 98.5% uptime and an average cycle time of 11.8 minutes. Key achievements include:
+- Produced 2,847 parts this quarter
+- Maintained quality rate of 99.6%
+- Reduced setup time by 15%
 
-### Apollo 11 (1969)
+### Mazak VTC 300 Performance
 
-The historic Apollo 11 mission, led by NASA, marked the first successful human landing on the Moon. Astronauts Neil Armstrong and Buzz Aldrin became the first humans to set foot on the lunar surface.
+Our VTC 300 machine showed outstanding efficiency improvements, achieving 94.2% OEE. Notable highlights:
+- Completed 2,234 parts with zero quality defects
+- Implemented predictive maintenance reducing unplanned downtime
+- Energy consumption reduced by 12%
 
-### Viking 1 and 2 (1975)
+### Mazak 350MSY 5-Axis Performance
 
-NASA’s Viking program successfully launched two spacecraft, Viking 1 and Viking 2, to Mars. These missions were the first to successfully land and operate on the Martian surface, conducting experiments to search for signs of life.
+The 5-axis machining center delivered complex parts with exceptional precision:
+- Handled 1,456 complex geometries
+- Reduced secondary operations by 40%
+- Achieved surface finish requirements on 99.8% of parts
 
-### Space Shuttle Columbia (1981)
+### Mazak VTC 300C Status
 
-The first orbital space shuttle mission, STS-1, launched the Space Shuttle Columbia on April 12, 1981. The shuttle program revolutionized space travel, providing a reusable spacecraft for a variety of missions.
+Currently undergoing scheduled maintenance and upgrades:
+- New spindle installation completed
+- Control system software updated
+- Expected to return to production next week
 
-### Hubble Space Telescope (1990)
+## Productivity Improvements
 
-The Hubble Space Telescope has provided unparalleled images and data, revolutionizing our understanding of the universe and contributing to countless astronomical discoveries.
+Our focus on continuous improvement has yielded significant results across all production lines.
 
-### International Space Station (ISS) construction (1998—2011)
+Key initiatives implemented this quarter include:
+- **Predictive Maintenance**: IoT sensors and machine learning algorithms now predict potential failures 72 hours in advance
+- **Automated Quality Control**: Vision systems inspect 100% of parts, reducing human error by 85%
+- **Energy Optimization**: Smart scheduling reduces peak power consumption during high-demand periods
 
-The ISS, a collaborative effort involving multiple space agencies, began construction with the launch of its first module, Zarya, in 1998. Over the following years, various modules were added, making the ISS a symbol of international cooperation in space exploration.
+## Recent Production Activity
 
-## Commercial spaceflight
+The implementation of digital monitoring systems has provided unprecedented visibility into our manufacturing processes.
 
-After the Space Shuttle program, a new era emerged with a shift towards commercial spaceflight.
+Our MTConnect-enabled machines now provide real-time data on:
+- Spindle loads and temperatures
+- Tool wear and remaining life
+- Part cycle times and quality metrics
+- Energy consumption patterns
 
-Private companies like Blue Origin, founded by Jeff Bezos in 2000, and SpaceX, founded by Elon Musk in 2002, entered the scene. These companies focused on developing reusable rocket technologies, significantly reducing launch costs.
+This data-driven approach has enabled us to optimize production schedules, reduce waste, and improve overall equipment effectiveness.
 
-SpaceX, in particular, achieved milestones like the first privately developed spacecraft to reach orbit (Dragon in 2010) and the first privately funded spacecraft to dock with the ISS (Dragon in 2012).
+## Future Initiatives
 
-## Recent launch activity
+Looking ahead, we're planning several strategic improvements to further enhance our manufacturing capabilities:
 
-The proliferation of commercial space companies has driven a surge in global launch activity within the last few years.
+**Q2 Initiatives:**
+- Implementation of digital twin technology for all CNC machines
+- Advanced analytics dashboard for real-time production monitoring
+- Integration of collaborative robots for material handling
 
-SpaceX’s Falcon 9 and Falcon Heavy, along with other vehicles from companies like Rocket Lab, have become workhorses for deploying satellites, conducting scientific missions, and ferrying crew to the ISS.
-
-The advent of small satellite constellations, such as Starlink by SpaceX, has further fueled this increase in launches. The push for lunar exploration has added momentum to launch activities, with initiatives like NASA’s Artemis program and plans for crewed missions to the Moon and Mars.
-
-## Looking forward
-
-As technology continues to advance and global interest in space exploration grows, the future promises even more exciting developments in the realm of rocket launches and space travel.
-
-Exploration will not only be limited to the Moon or Mars, but extend to other parts of our solar system such as Jupiter and Saturn’s moons, and beyond.
+**Q3-Q4 Roadmap:**
+- Expansion of predictive maintenance to all production equipment
+- Implementation of automated scheduling system
+- Development of custom quality control algorithms
