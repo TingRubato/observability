@@ -1,0 +1,159 @@
+
+erDiagram
+    %% Core Entity Tables
+    MACHINES {
+        serial id PK "Primary Key"
+        varchar name UK "Unique machine identifier"
+        varchar model "Machine model (VTC-200)"
+        varchar series "Machine series (VTC)"
+        varchar uuid "Machine UUID"
+        varchar asset_id "Asset identifier"
+        inet ip_address "Machine IP address"
+        integer port "MTConnect port"
+        varchar status "Machine status"
+        timestamp created_at "Creation timestamp"
+        timestamp updated_at "Last update timestamp"
+    }
+
+    COMPONENTS {
+        serial id PK "Primary Key"
+        integer machine_id FK "Foreign Key to machines"
+        varchar component_id "Component identifier (x,y,z,spindle)"
+        varchar component_type "Linear/Rotary/Controller"
+        varchar component_name "Component display name"
+        varchar data_item_id "MTConnect data item ID"
+        timestamp created_at "Creation timestamp"
+    }
+
+    DATA_STREAMS {
+        serial id PK "Primary Key"
+        integer machine_id FK "Foreign Key to machines"
+        varchar stream_type "current/sample"
+        varchar instance_id "Stream instance ID"
+        timestamp creation_time "Stream creation time"
+        integer next_sequence "Next sequence number"
+        integer first_sequence "First sequence number"
+        integer last_sequence "Last sequence number"
+        timestamp created_at "Creation timestamp"
+    }
+
+    %% Time-Series Data Tables
+    SAMPLES {
+        serial id PK "Primary Key"
+        integer data_stream_id FK "Foreign Key to data_streams"
+        integer component_id FK "Foreign Key to components"
+        varchar data_item_id "MTConnect data item ID"
+        varchar sample_name "Sample type (Srpm, Xpos, Ypos)"
+        timestamp timestamp "Sample timestamp"
+        integer sequence "Sequence number"
+        decimal value "Sample value"
+        varchar sub_type "ACTUAL/COMMANDED"
+        varchar composition_id "Composition identifier"
+        timestamp created_at "Creation timestamp"
+    }
+
+    EVENTS {
+        serial id PK "Primary Key"
+        integer data_stream_id FK "Foreign Key to data_streams"
+        integer component_id FK "Foreign Key to components"
+        varchar data_item_id "MTConnect data item ID"
+        varchar event_name "Event type (program_start, door_open)"
+        timestamp timestamp "Event timestamp"
+        integer sequence "Sequence number"
+        text value "Event description"
+        varchar event_type "PROGRAM/SAFETY/etc"
+        timestamp created_at "Creation timestamp"
+    }
+
+    CONDITIONS {
+        serial id PK "Primary Key"
+        integer data_stream_id FK "Foreign Key to data_streams"
+        integer component_id FK "Foreign Key to components"
+        varchar data_item_id "MTConnect data item ID"
+        varchar condition_name "Condition type (temperature, load)"
+        timestamp timestamp "Condition timestamp"
+        integer sequence "Sequence number"
+        varchar state "NORMAL/WARNING/FAULT"
+        varchar category "TEMPERATURE/LOAD/etc"
+        text message "Condition message"
+        timestamp created_at "Creation timestamp"
+    }
+
+    %% Analytics Tables
+    MACHINE_STATUS_SUMMARY {
+        serial id PK "Primary Key"
+        integer machine_id FK "Foreign Key to machines"
+        date date "Summary date"
+        integer hour "Hour (0-23)"
+        integer total_samples "Total samples in hour"
+        integer total_events "Total events in hour"
+        integer total_conditions "Total conditions in hour"
+        decimal avg_temperature "Average temperature"
+        decimal avg_rpm "Average RPM"
+        varchar status "Machine status"
+        timestamp created_at "Creation timestamp"
+    }
+
+    COMPONENT_ALERTS {
+        serial id PK "Primary Key"
+        integer machine_id FK "Foreign Key to machines"
+        integer component_id FK "Foreign Key to components"
+        varchar alert_type "Alert type (TEMPERATURE_HIGH)"
+        varchar severity "INFO/WARNING/CRITICAL"
+        text message "Alert message"
+        decimal threshold_value "Threshold value"
+        decimal actual_value "Actual value"
+        timestamp timestamp "Alert timestamp"
+        boolean acknowledged "Acknowledgment status"
+        varchar acknowledged_by "Acknowledged by user"
+        timestamp acknowledged_at "Acknowledgment timestamp"
+        timestamp created_at "Creation timestamp"
+    }
+
+    %% Archive Tables
+    SAMPLES_ARCHIVE {
+        serial id PK "Primary Key"
+        integer data_stream_id FK "Foreign Key to data_streams"
+        integer component_id FK "Foreign Key to components"
+        varchar data_item_id "MTConnect data item ID"
+        varchar sample_name "Sample type"
+        timestamp timestamp "Sample timestamp"
+        integer sequence "Sequence number"
+        decimal value "Sample value"
+        varchar sub_type "Sample subtype"
+        varchar composition_id "Composition identifier"
+        timestamp created_at "Creation timestamp"
+    }
+
+    EVENTS_ARCHIVE {
+        serial id PK "Primary Key"
+        integer data_stream_id FK "Foreign Key to data_streams"
+        integer component_id FK "Foreign Key to components"
+        varchar data_item_id "MTConnect data item ID"
+        varchar event_name "Event type"
+        timestamp timestamp "Event timestamp"
+        integer sequence "Sequence number"
+        text value "Event description"
+        varchar event_type "Event category"
+        timestamp created_at "Creation timestamp"
+    }
+
+    %% Relationships - Core Entities
+    MACHINES ||--o{ COMPONENTS : "contains"
+    MACHINES ||--o{ DATA_STREAMS : "generates"
+    MACHINES ||--o{ MACHINE_STATUS_SUMMARY : "aggregates to"
+
+    %% Relationships - Data Flow
+    DATA_STREAMS ||--o{ SAMPLES : "streams to"
+    DATA_STREAMS ||--o{ EVENTS : "streams to"
+    DATA_STREAMS ||--o{ CONDITIONS : "streams to"
+
+    %% Relationships - Component Data
+    COMPONENTS ||--o{ SAMPLES : "produces sensor data"
+    COMPONENTS ||--o{ EVENTS : "triggers events"
+    COMPONENTS ||--o{ CONDITIONS : "reports health status"
+    COMPONENTS ||--o{ COMPONENT_ALERTS : "generates alerts"
+
+    %% Relationships - Archive
+    SAMPLES ||--o| SAMPLES_ARCHIVE : "archived to"
+    EVENTS ||--o| EVENTS_ARCHIVE : "archived to"

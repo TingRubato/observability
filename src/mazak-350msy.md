@@ -80,66 +80,63 @@ toc: false
 
 # Mazak 350MSY - 5-Axis Manufacturing Center
 
-<!-- Load and process the combined MTConnect data -->
+<!-- Load and process data from PostgreSQL database -->
 
 ```js
-// Load machine-specific optimized data for better performance and accuracy
-const samplesData = FileAttachment("data/optimized/mazak_3_350msy/recent/samples_recent.csv").csv({typed: true});
-const eventsData = FileAttachment("data/optimized/mazak_3_350msy/recent/events_recent.csv").csv({typed: true});
-const conditionsData = FileAttachment("data/optimized/mazak_3_350msy/conditions.csv").csv({typed: true});
-const metadataData = FileAttachment("data/optimized/mazak_3_350msy/metadata.csv").csv({typed: true});
-```
+// Import database connection utilities
+import { createDatabaseConnection, loadDataWithFallback } from "./database-connection.js";
 
-```js
-// Process machine-specific data (already filtered for 350MSY)
+// Load machine-specific data from database
 const machineName = "mazak_3_350msy";
 
-// Process samples data with enhanced validation
-const samples = samplesData
+// Load data from PostgreSQL database with fallback to files
+const timeSeriesData = await loadDataWithFallback('timeSeries', machineName, 24); // 24 hours
+const recentEvents = await loadDataWithFallback('recentEvents', machineName, 24); // 24 hours
+const recentConditions = await loadDataWithFallback('recentConditions', machineName, 24); // 24 hours
+
+// Process samples data from database
+const samples = timeSeriesData
+  .filter(d => d.data_type === 'sample')
   .map(d => ({
     component: d.component_id,
-    item: d.sample_name,
+    item: d.name,
     subtype: d.sub_type,
     ts: new Date(d.timestamp),
     value: +d.value,
-    machine: d.machine_name,
-    dataType: d.data_type
+    machine: machineName,
+    dataType: 'sample'
   }))
   .filter(d => !isNaN(d.value) && isFinite(d.value) && d.value !== null)
   .sort((a, b) => a.ts - b.ts);
 
-// Process events data with better null handling
-const events = eventsData
+// Process events data from database
+const events = recentEvents
   .map(d => ({
     component: d.component_id,
     item: d.event_name,
     ts: new Date(d.timestamp),
-    value: d.value != null && String(d.value).trim() !== '' ? (isNaN(+d.value) ? d.value : +d.value) : null,
-    machine: d.machine_name,
-    dataType: d.data_type
+    value: d.event_value != null && String(d.event_value).trim() !== '' ? d.event_value : null,
+    machine: machineName,
+    dataType: 'event'
   }))
   .filter(d => d.value !== null && d.value !== undefined && d.value !== '')
   .sort((a, b) => a.ts - b.ts);
 
-// Process conditions data
-const conditions = conditionsData
+// Process conditions data from database
+const conditions = recentConditions
   .map(d => ({
     component: d.component_id,
     item: d.condition_name,
     ts: new Date(d.timestamp),
-    state: d.state,
+    state: d.state_value,
     category: d.category,
-    machine: d.machine_name,
-    dataType: d.data_type
+    machine: machineName,
+    dataType: 'condition'
   }))
   .sort((a, b) => a.ts - b.ts);
 
-// Get machine metadata
-const machineInfo = metadataData;
-
 // Debug info
-console.log("Debug: Processed samples:", samples.length);
-console.log("Debug: Processed events:", events.length);
+console.log("Debug: Loaded from database - Samples:", samples.length, "Events:", events.length, "Conditions:", conditions.length);
 console.log("Debug: Available sample items:", [...new Set(samples.map(d => d.item))]);
 console.log("Debug: Available event items:", [...new Set(events.map(d => d.item))]);
 ```
@@ -163,8 +160,8 @@ const latestEvents = events.reduce((acc, d) => {
 }, {});
 
 // Enhanced efficiency metrics with validation
-const autoTime = latestSamples.auto_time?.value || 0;
-const cutTime = latestSamples.cut_time?.value || 0;
+const autoTime = latestSamples['auto_time']?.value || 0;
+const cutTime = latestSamples['cut_time']?.value || 0;
 
 // Calculate efficiency metrics
 const efficiency = autoTime > 0 ? Math.min((cutTime / autoTime * 100), 100) : 0;
@@ -172,29 +169,29 @@ const utilization = autoTime > 0 ? Math.min((autoTime / (autoTime + 3600) * 100)
 
 // Get position data (5-axis positions)
 const positions = {
-  X: latestSamples.Xabs?.value || 0,
-  Y: latestSamples.Yabs?.value || 0,
-  Z: latestSamples.Zabs?.value || 0,
-  B: latestSamples.Babs?.value || 0,
-  C: latestSamples.Cabs?.value || 0
+  X: latestSamples['Xabs']?.value || 0,
+  Y: latestSamples['Yabs']?.value || 0,
+  Z: latestSamples['Zabs']?.value || 0,
+  B: latestSamples['Babs']?.value || 0,
+  C: latestSamples['Cabs']?.value || 0
 };
 
 // Get load data
 const loads = {
-  X: latestSamples.Xload?.value || 0,
-  Y: latestSamples.Yload?.value || 0,
-  Z: latestSamples.Zload?.value || 0,
-  Spindle: latestSamples.Sload?.value || 0
+  X: latestSamples['Xload']?.value || 0,
+  Y: latestSamples['Yload']?.value || 0,
+  Z: latestSamples['Zload']?.value || 0,
+  Spindle: latestSamples['Sload']?.value || 0
 };
 
 // Get spindle data
-const spindleRPM = latestSamples.Srpm?.value || 0;
+const spindleRPM = latestSamples['Srpm']?.value || 0;
 
 // Machine status
 const machineStatus = {
-  availability: latestEvents.avail?.value || 'Unknown',
-  mode: latestEvents.mode?.value || 'Unknown',
-  estop: latestEvents.estop?.value || 'Unknown'
+  availability: latestEvents['avail']?.value || 'Unknown',
+  mode: latestEvents['mode']?.value || 'Unknown',
+  estop: latestEvents['estop']?.value || 'Unknown'
 };
 
 // Check data availability
@@ -570,22 +567,25 @@ function rotaryAxisChart(data, {width} = {}) {
 
 ```js
 function dataTypeComparisonChart(samplesData, eventsData, {width} = {}) {
-  const currentSamples = samples.filter(d => d.dataType === "current");
   const sampleSamples = samples.filter(d => d.dataType === "sample");
+  const eventSamples = events.filter(d => d.dataType === "event");
+  const conditionSamples = conditions.filter(d => d.dataType === "condition");
+
   const comparisonData = [
-    {source: "Current Data", count: currentSamples.length, color: "#ef4444"},
-    {source: "Sample Data", count: sampleSamples.length, color: "#10b981"}
+    {source: "Sample Data", count: sampleSamples.length, color: "#10b981"},
+    {source: "Event Data", count: eventSamples.length, color: "#f59e0b"},
+    {source: "Condition Data", count: conditionSamples.length, color: "#3b82f6"}
   ];
-  
+
   if (comparisonData.every(d => d.count === 0)) {
     return html`<div style="text-align: center; padding: 2rem; color: #6b7280;">No data source information available</div>`;
   }
-  
+
   return Plot.plot({
-    title: "Data Source Distribution",
+    title: "Database Data Distribution",
     width,
     height: 300,
-    x: {label: "Data Source"},
+    x: {label: "Data Type"},
     y: {label: "Record Count"},
     marks: [
       Plot.barY(comparisonData, {
@@ -713,8 +713,8 @@ display(hasEventData
 ```js
 // Get latest tool and program info from events
 const latestProgram = {
-  program: latestEvents.program?.value || 'N/A',
-  Tool_number: latestEvents.Tool_number?.value || 'N/A'
+  program: latestEvents['program']?.value || 'N/A',
+  Tool_number: latestEvents['Tool_number']?.value || 'N/A'
 };
 
 // Get axis state information (if available)
@@ -766,12 +766,12 @@ display(html`<div class="performance-section">
       </div>
     </div>
     <div class="metric-card">
-      <h4 style="margin-top: 0; color: #4b5563;">Data Summary</h4>
+      <h4 style="margin-top: 0; color: #4b5563;">Database Data Summary</h4>
       <div style="display: grid; gap: 0.5rem; font-family: monospace;">
-        <div>Current Data: <strong>${samples.filter(d => d.dataType === "current").length.toLocaleString()}</strong></div>
         <div>Sample Data: <strong>${samples.filter(d => d.dataType === "sample").length.toLocaleString()}</strong></div>
-        <div>Total Events: <strong>${events.length.toLocaleString()}</strong></div>
-        <div>Conditions: <strong>${conditions.length.toLocaleString()}</strong></div>
+        <div>Event Data: <strong>${events.filter(d => d.dataType === "event").length.toLocaleString()}</strong></div>
+        <div>Condition Data: <strong>${conditions.filter(d => d.dataType === "condition").length.toLocaleString()}</strong></div>
+        <div>Total Records: <strong>${(samples.length + events.length + conditions.length).toLocaleString()}</strong></div>
       </div>
     </div>
   </div>
@@ -804,8 +804,9 @@ display(html`<div class="card">
 display(html`<div>
 <p><em>Dashboard updated: ${new Date().toLocaleString()}</em></p>
 
-<p><strong>Data Sources:</strong> Optimized CSV files (Recent data)<br/>
+<p><strong>Data Sources:</strong> Live PostgreSQL database<br/>
 <strong>Machine:</strong> Mazak 350MSY 5-axis CNC (${machineName})<br/>
 <strong>Total Data Points:</strong> ${(samples.length + events.length + conditions.length).toLocaleString()}<br/>
-<strong>5-Axis Capability:</strong> Linear (X,Y,Z) + Rotary (B,C) axes monitoring</p>
+<strong>5-Axis Capability:</strong> Linear (X,Y,Z) + Rotary (B,C) axes monitoring<br/>
+<strong>Database Integration:</strong> Real-time data via API server with fallback to files</p>
 </div>`)

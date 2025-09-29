@@ -8,19 +8,24 @@ toc: false
 
 # Mazak VTC 300 - MTConnect Dashboard
 
-This dashboard provides analysis of the Mazak VTC 300 machine with interactive time range filtering. Data includes July 2025 with comprehensive machine monitoring.
+This dashboard provides analysis of the Mazak VTC 300 machine with interactive time range filtering. Data is loaded from the PostgreSQL database via a backend API with comprehensive machine monitoring.
 
 ```js
-// Load data from database using data loaders
-const samplesData = FileAttachment("data/loaders/vtc300-samples.json").json();
-const eventsData = FileAttachment("data/loaders/vtc300-events.json").json();
-```
+// Import database connection utilities
+import { createDatabaseConnection, loadDataWithFallback } from "./database-connection.js";
 
-```js
-// Process and sample the data for performance
-const allSamples = samplesData
+// Load machine-specific data from database
+const machineName = "mazak_2_vtc_300";
+
+// Load data from PostgreSQL database with fallback to files
+const timeSeriesData = await loadDataWithFallback('timeSeries', machineName, 24); // 24 hours
+const recentEvents = await loadDataWithFallback('recentEvents', machineName, 24); // 24 hours
+
+// Process samples data from database
+const allSamples = timeSeriesData
+  .filter(d => d.data_type === 'sample')
   .map(d => ({
-    item: d.data_item_id,
+    item: d.name,
     ts: new Date(d.timestamp),
     value: +d.value,
     component: d.component_id
@@ -28,24 +33,25 @@ const allSamples = samplesData
   .filter(d => !isNaN(d.value) && isFinite(d.value))
   .sort((a, b) => a.ts - b.ts);
 
-const allEvents = eventsData
+// Process events data from database
+const allEvents = recentEvents
   .map(d => ({
-    item: d.data_item_id,
+    item: d.event_name,
     ts: new Date(d.timestamp),
-    value: d.value,
+    value: d.event_value,
     component: d.component_id
   }))
   .filter(d => d.value && String(d.value).trim() !== '')
   .sort((a, b) => a.ts - b.ts);
+
+console.log(`Loaded ${allSamples.length} samples and ${allEvents.length} events from database for ${machineName}`);
 
 // Debug: Show available data items
 const availableSampleItems = [...new Set(allSamples.map(d => d.item))];
 const availableEventItems = [...new Set(allEvents.map(d => d.item))];
 console.log('Available sample items:', availableSampleItems);
 console.log('Available event items:', availableEventItems);
-```
 
-```js
 // Optimized sampling strategy
 const performanceCutoff = 10000; // Maximum points for performance
 const sampleRate = Math.max(1, Math.floor(allSamples.length / performanceCutoff));
@@ -59,24 +65,26 @@ const dateRange = {
   start: samples[0]?.ts || new Date(),
   end: samples[samples.length-1]?.ts || new Date()
 };
+```
+
 ```js
 display(html`<div class="hero">
-  <h2>Mazak VTC 300 - Complete Dataset (Including July 2025)</h2>
+  <h2>Mazak VTC 300 - Live Database Dashboard</h2>
   <p>Data Coverage: ${dateRange.start.toLocaleDateString()} to ${dateRange.end.toLocaleDateString()}</p>
   <div style="margin-top: 1rem;">
     <span style="padding: 0.5rem 1rem; background: rgba(255,255,255,0.2); border-radius: 0.5rem; margin-right: 1rem;">
-      📊 ${samples.length.toLocaleString()} Samples (${allSamples.length.toLocaleString()} total)
+      [CHART] ${samples.length.toLocaleString()} Samples (${allSamples.length.toLocaleString()} total)
     </span>
     <span style="padding: 0.5rem 1rem; background: rgba(255,255,255,0.2); border-radius: 0.5rem;">
-      📋 ${events.length.toLocaleString()} Events (${allEvents.length.toLocaleString()} total)
+      [LIST] ${events.length.toLocaleString()} Events (${allEvents.length.toLocaleString()} total)
     </span>
   </div>
   <div style="margin-top: 0.5rem; font-size: 0.9em; opacity: 0.8;">
     <span style="padding: 0.25rem 0.5rem; background: rgba(255,255,255,0.15); border-radius: 0.25rem; margin-right: 0.5rem;">
-      📊 Sample Rate: 1 in ${sampleRate}
+      [CHART] Sample Rate: 1 in ${sampleRate}
     </span>
     <span style="padding: 0.25rem 0.5rem; background: rgba(255,255,255,0.15); border-radius: 0.25rem;">
-      📋 Event Rate: 1 in ${eventRate}
+      [LIST] Event Rate: 1 in ${eventRate}
     </span>
   </div>
 </div>`)
@@ -85,13 +93,12 @@ display(html`<div class="hero">
 ## Time Range Filter
 
 ```js
-// Time range filter controls with July-specific options
+// Time range filter controls with dynamic options based on available data
 const quickFilter = Inputs.radio([
-  "July 10-12, 2025",
-  "July 13-15, 2025", 
-  "July 16-18, 2025",
-  "Mid July (10-20)",
-  "All July 2025",
+  "Last 24 Hours",
+  "Last 7 Days", 
+  "Last 30 Days",
+  "Last 3 Months",
   "All Available Data",
   "Custom Range"
 ], {
@@ -115,7 +122,7 @@ const endDate = Inputs.date({
 ```
 
 <div class="card">
-  <h3>📅 Time Range Selection</h3>
+  <h3>[CALENDAR] Time Range Selection</h3>
   <div class="grid grid-cols-3" style="gap: 1rem; align-items: end;">
     <div>${quickFilter}</div>
     <div>${startDate}</div>
@@ -124,7 +131,7 @@ const endDate = Inputs.date({
   <div style="margin-top: 1rem; padding: 0.75rem; background: #f8fafc; border-radius: 0.5rem;">
     <strong>Available Data Period:</strong> ${dateRange.start.toLocaleDateString()} to ${dateRange.end.toLocaleDateString()}
     <br/>
-    <strong>Coverage:</strong> Complete dataset including July 2025 data (${allSamples.length.toLocaleString()} total samples)
+    <strong>Coverage:</strong> Live database data for VTC300 (${allSamples.length.toLocaleString()} total samples)
     <br/>
     <strong>Performance:</strong> Smart sampling applied for browser performance (${samples.length.toLocaleString()} displayed)
   </div>
@@ -136,12 +143,12 @@ const selectedFilter = Generators.input(quickFilter);
 const selectedStart = Generators.input(startDate);
 const selectedEnd = Generators.input(endDate);
 
+const now = new Date();
 const dateFilters = {
-  "July 10-12, 2025": { start: new Date('2025-07-10'), end: new Date('2025-07-12T23:59:59') },
-  "July 13-15, 2025": { start: new Date('2025-07-13'), end: new Date('2025-07-15T23:59:59') },
-  "July 16-18, 2025": { start: new Date('2025-07-16'), end: new Date('2025-07-18T23:59:59') },
-  "Mid July (10-20)": { start: new Date('2025-07-10'), end: new Date('2025-07-20T23:59:59') },
-  "All July 2025": { start: new Date('2025-07-01'), end: new Date('2025-07-31T23:59:59') },
+  "Last 24 Hours": { start: new Date(now.getTime() - 24 * 60 * 60 * 1000), end: now },
+  "Last 7 Days": { start: new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000), end: now },
+  "Last 30 Days": { start: new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000), end: now },
+  "Last 3 Months": { start: new Date(now.getTime() - 90 * 24 * 60 * 60 * 1000), end: now },
   "Custom Range": { start: selectedStart, end: selectedEnd },
   "All Available Data": { start: dateRange.start, end: dateRange.end }
 };
@@ -154,7 +161,7 @@ const filteredEvents = events.filter(d => d.ts >= filterRange.start && d.ts <= f
 ```
 
 <div class="card" style="background: #e8f5e8; border-left: 4px solid #10b981;">
-  <h4 style="color: #059669; margin-top: 0;">📊 Active Filter: ${selectedFilter}</h4>
+  <h4 style="color: #059669; margin-top: 0;">[CHART] Active Filter: ${selectedFilter}</h4>
   <div class="grid grid-cols-4" style="gap: 1rem; font-family: monospace;">
     <div><strong>Period:</strong><br/>${filterRange.start.toLocaleDateString()} to ${filterRange.end.toLocaleDateString()}</div>
     <div><strong>Samples:</strong><br/>${filteredSamples.length.toLocaleString()} points</div>
@@ -433,6 +440,11 @@ function fallbackChart(data, {width} = {}) {
 
 *Dashboard updated: ${new Date().toLocaleString()}*
 
-**Data Source:** Complete July 2025 dataset for Mazak VTC 300  
+**Data Source:** Live PostgreSQL database for Mazak VTC 300 via backend API  
 **Performance:** Smart sampling for optimal browser performance  
-**Time Range:** Interactive filtering with July-specific options
+**Time Range:** Interactive filtering with database-driven time ranges
+
+**Database Integration:**
+- PostgreSQL database connection via API server on `http://localhost:3000/api`
+- Data loaded using database connection utilities with automatic fallback to files
+- Real-time data updates with live polling capabilities

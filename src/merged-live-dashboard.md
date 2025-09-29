@@ -11,26 +11,29 @@ toc: false
 Real-time monitoring with PostgreSQL database integration and historical analysis capabilities.
 
 ```js
-// Load data from our improved data loaders (with fallback to mock data)
-const machines = FileAttachment("data/loaders/machines.json").json();
-const machineSummary = FileAttachment("data/loaders/machine-summary.json").json();
-const recentConditions = FileAttachment("data/loaders/recent-conditions.json").json();
-const recentEvents = FileAttachment("data/loaders/recent-events.json").json();
+// Import database connection utilities
+import { createDatabaseConnection, loadDataWithFallback, DatabaseLivePoller } from "./database-connection.js";
+
+// Load data from PostgreSQL database with fallback to files
+const machines = await loadDataWithFallback('machines');
+const machineSummary = await loadDataWithFallback('machineSummary');
+const recentConditions = await loadDataWithFallback('recentConditions');
+const recentEvents = await loadDataWithFallback('recentEvents');
 ```
 
 ```js
-// Auto-refresh mechanism for live updates
-const refreshInterval = 30000; // 30 seconds
-const currentTime = new Date().toLocaleString();
+// Live data polling with database integration
+const livePoller = new DatabaseLivePoller({
+  host: 'localhost',
+  port: 3000,
+  interval: 30000 // 30 seconds
+});
 
-// Only refresh if page is visible
-if (typeof window !== 'undefined') {
-  setInterval(() => {
-    if (document.visibilityState === 'visible') {
-      window.location.reload();
-    }
-  }, refreshInterval);
-}
+// Start live polling
+await livePoller.start();
+
+// Get current timestamp
+const currentTime = new Date().toLocaleString();
 ```
 
 ```js
@@ -249,8 +252,6 @@ html`
 ## Real-Time Charts
 
 ```js
-import {Plot} from "@observablehq/plot";
-
 // Machine activity comparison chart
 const activityData = processedMachines.flatMap(m => [
   {machine: m.name, type: 'Samples', count: m.samplesLastHour, status: m.status},
@@ -289,28 +290,32 @@ const statusData = processedMachines.map(m => ({
   samples: m.samplesLastHour
 }));
 
+// Create status counts for bar chart
+const statusCounts = statusData.reduce((acc, m) => {
+  acc[m.status] = (acc[m.status] || 0) + 1;
+  return acc;
+}, {});
+
+const statusChartData = Object.entries(statusCounts).map(([status, count]) => ({
+  status,
+  count
+}));
+
 const statusChart = Plot.plot({
   title: "Machine Status Distribution",
   width: 400,
   height: 300,
+  marginLeft: 80,
+  x: {label: "Count"},
+  y: {label: "Status"},
   color: {
     domain: ["Online", "Idle", "Offline"],
     range: ["#22c55e", "#f59e0b", "#ef4444"]
   },
   marks: [
-    Plot.arc(statusData.reduce((acc, m) => {
-      const existing = acc.find(a => a.status === m.status);
-      if (existing) {
-        existing.count++;
-      } else {
-        acc.push({status: m.status, count: 1});
-      }
-      return acc;
-    }, []), {
-      innerRadius: 50,
-      outerRadius: 120,
-      startAngle: 0,
-      endAngle: (d) => (d.count / processedMachines.length) * 2 * Math.PI,
+    Plot.barX(statusChartData, {
+      x: "count",
+      y: "status",
       fill: "status",
       tip: true
     })

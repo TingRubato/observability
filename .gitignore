@@ -462,3 +462,5 @@ src/data/
 .postgres/
 
 mazak_data_loader.log
+
+nexent

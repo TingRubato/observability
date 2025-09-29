@@ -1,0 +1,505 @@
+# Enhanced Database Schema Design
+# MTConnect Observability System
+
+vars: {
+  d2-config: {
+    theme-id: 303
+  }
+}
+
+layout: dagre
+direction: right
+
+# Suspend non-essential connections for cleaner view
+**: suspend
+
+**: unsuspend {
+  &class: core-entity
+}
+
+# Core Entity Tables
+machines: |md
+  ## Machines
+  **[Core Entity]**
+
+  Machine information and configuration data
+|| {
+  shape: cylinder
+  class: core-entity
+  style: {
+    fill: "#e3f2fd"
+    stroke: "#1976d2"
+    stroke-width: 3
+  }
+  tooltip: "Machine information and configuration"
+  fields: {
+    id: "SERIAL PRIMARY KEY"
+    name: "VARCHAR(100) UNIQUE - e.g., mazak_1_vtc_200"
+    model: "VARCHAR(50) - e.g., VTC-200"
+    series: "VARCHAR(20) - e.g., VTC"
+    uuid: "VARCHAR(100) - e.g., vtc200-001"
+    asset_id: "VARCHAR(100) - e.g., MZ-VTC200-001"
+    ip_address: "INET"
+    port: "INTEGER"
+    status: "VARCHAR(20) DEFAULT 'active'"
+    created_at: "TIMESTAMP DEFAULT CURRENT_TIMESTAMP"
+    updated_at: "TIMESTAMP DEFAULT CURRENT_TIMESTAMP"
+  }
+}
+
+components: |md
+  ## Components
+  **[Core Entity]**
+
+  Machine components (axes, spindle, controllers)
+|| {
+  shape: document
+  class: core-entity
+  style: {
+    fill: "#f3e5f5"
+    stroke: "#7b1fa2"
+    stroke-width: 3
+  }
+  tooltip: "Machine components (axes, spindle, etc.)"
+  fields: {
+    id: "SERIAL PRIMARY KEY"
+    machine_id: "INTEGER REFERENCES machines(id)"
+    component_id: "VARCHAR(50) - e.g., x, y, z, spindle"
+    component_type: "VARCHAR(50) - Linear/Rotary/Controller"
+    component_name: "VARCHAR(100) - X/Y/Z/Spindle"
+    data_item_id: "VARCHAR(100)"
+    created_at: "TIMESTAMP DEFAULT CURRENT_TIMESTAMP"
+  }
+  constraints: {
+    unique: "UNIQUE(machine_id, component_id)"
+  }
+}
+
+data_streams: |md
+  ## Data Streams
+  **[Core Entity]**
+
+  MTConnect data stream configuration and sequence tracking
+|| {
+  shape: document
+  class: core-entity
+  style: {
+    fill: "#e8f5e8"
+    stroke: "#388e3c"
+    stroke-width: 3
+  }
+  tooltip: "MTConnect data stream configuration"
+  fields: {
+    id: "SERIAL PRIMARY KEY"
+    machine_id: "INTEGER REFERENCES machines(id)"
+    stream_type: "VARCHAR(20) - current/sample"
+    instance_id: "VARCHAR(100)"
+    creation_time: "TIMESTAMP NOT NULL"
+    next_sequence: "INTEGER DEFAULT 0"
+    first_sequence: "INTEGER DEFAULT 0"
+    last_sequence: "INTEGER DEFAULT 0"
+    created_at: "TIMESTAMP DEFAULT CURRENT_TIMESTAMP"
+  }
+  constraints: {
+    unique: "UNIQUE(machine_id, stream_type, creation_time)"
+  }
+}
+
+# Data Tables (Time-Series)
+samples: |md
+  ## Samples
+  **[Time-Series Data]**
+
+  Real-time sensor readings (RPM, temperature, position)
+|| {
+  shape: rectangle
+  style: {
+    fill: "#fff3e0"
+    stroke: "#f57c00"
+    stroke-width: 3
+  }
+  tooltip: "Real-time sensor readings (RPM, position, etc.)"
+  fields: {
+    id: "SERIAL PRIMARY KEY"
+    data_stream_id: "INTEGER REFERENCES data_streams(id)"
+    component_id: "INTEGER REFERENCES components(id)"
+    data_item_id: "VARCHAR(100) NOT NULL"
+    sample_name: "VARCHAR(100) NOT NULL - Srpm, Xpos, Ypos"
+    timestamp: "TIMESTAMP NOT NULL"
+    sequence: "INTEGER NOT NULL"
+    value: "DECIMAL(15,6)"
+    sub_type: "VARCHAR(50) - ACTUAL/COMMANDED"
+    composition_id: "VARCHAR(100)"
+    created_at: "TIMESTAMP DEFAULT CURRENT_TIMESTAMP"
+  }
+  indexes: {
+    time_series: "INDEX (machine_id, timestamp DESC)"
+    component_time: "INDEX (component_id, timestamp DESC)"
+    sample_name: "INDEX (sample_name)"
+  }
+  note: "Partitioned by month for performance"
+}
+
+events: |md
+  ## Events
+  **[Time-Series Data]**
+
+  Discrete state changes (program starts, door operations)
+|| {
+  shape: rectangle
+  style: {
+    fill: "#fce4ec"
+    stroke: "#c2185b"
+    stroke-width: 3
+  }
+  tooltip: "Discrete state changes (program starts, door operations)"
+  fields: {
+    id: "SERIAL PRIMARY KEY"
+    data_stream_id: "INTEGER REFERENCES data_streams(id)"
+    component_id: "INTEGER REFERENCES components(id)"
+    data_item_id: "VARCHAR(100) NOT NULL"
+    event_name: "VARCHAR(100) NOT NULL - program_start, door_open"
+    timestamp: "TIMESTAMP"
+    sequence: "INTEGER DEFAULT 0"
+    value: "TEXT"
+    event_type: "VARCHAR(50) - PROGRAM/SAFETY"
+    created_at: "TIMESTAMP DEFAULT CURRENT_TIMESTAMP"
+  }
+  indexes: {
+    time_series: "INDEX (machine_id, timestamp DESC)"
+    component_time: "INDEX (component_id, timestamp DESC)"
+    event_name: "INDEX (event_name)"
+  }
+  note: "Partitioned by month for performance"
+}
+
+conditions: |md
+  ## Conditions
+  **[Time-Series Data]**
+
+  Machine health states (NORMAL, WARNING, FAULT)
+|| {
+  shape: rectangle
+  style: {
+    fill: "#ffebee"
+    stroke: "#d32f2f"
+    stroke-width: 3
+  }
+  tooltip: "Machine health states (NORMAL, WARNING, FAULT)"
+  fields: {
+    id: "SERIAL PRIMARY KEY"
+    data_stream_id: "INTEGER REFERENCES data_streams(id)"
+    component_id: "INTEGER REFERENCES components(id)"
+    data_item_id: "VARCHAR(100) NOT NULL"
+    condition_name: "VARCHAR(100) NOT NULL - temperature, load"
+    timestamp: "TIMESTAMP NOT NULL"
+    sequence: "INTEGER NOT NULL"
+    state: "VARCHAR(50) NOT NULL - NORMAL/WARNING/FAULT"
+    category: "VARCHAR(50) - TEMPERATURE/LOAD"
+    message: "TEXT"
+    created_at: "TIMESTAMP DEFAULT CURRENT_TIMESTAMP"
+  }
+  indexes: {
+    time_series: "INDEX (machine_id, timestamp DESC)"
+    component_time: "INDEX (component_id, timestamp DESC)"
+    state: "INDEX (state)"
+  }
+  note: "Partitioned by month for performance"
+}
+
+# Analytics & Performance Tables
+machine_status_summary: |md
+  ## Machine Status Summary
+  **[Analytics]**
+
+  Hourly machine status aggregation for performance analytics
+|| {
+  shape: hexagon
+  style: {
+    fill: "#e0f2f1"
+    stroke: "#00796b"
+    stroke-width: 3
+  }
+  tooltip: "Hourly machine status aggregation"
+  fields: {
+    id: "SERIAL PRIMARY KEY"
+    machine_id: "INTEGER REFERENCES machines(id)"
+    date: "DATE NOT NULL"
+    hour: "INTEGER NOT NULL (0-23)"
+    total_samples: "INTEGER DEFAULT 0"
+    total_events: "INTEGER DEFAULT 0"
+    total_conditions: "INTEGER DEFAULT 0"
+    avg_temperature: "DECIMAL(8,2)"
+    avg_rpm: "DECIMAL(10,2)"
+    status: "VARCHAR(20) - online/idle/offline"
+    created_at: "TIMESTAMP DEFAULT CURRENT_TIMESTAMP"
+  }
+  constraints: {
+    unique: "UNIQUE(machine_id, date, hour)"
+  }
+  note: "Aggregated data for faster analytics"
+}
+
+component_alerts: |md
+  ## Component Alerts
+  **[Analytics]**
+
+  Component alerts and notifications with severity levels
+|| {
+  shape: hexagon
+  style: {
+    fill: "#fff8e1"
+    stroke: "#ffa000"
+    stroke-width: 3
+  }
+  tooltip: "Component alerts and notifications"
+  fields: {
+    id: "SERIAL PRIMARY KEY"
+    machine_id: "INTEGER REFERENCES machines(id)"
+    component_id: "INTEGER REFERENCES components(id)"
+    alert_type: "VARCHAR(50) NOT NULL - TEMPERATURE_HIGH"
+    severity: "VARCHAR(20) NOT NULL - INFO/WARNING/CRITICAL"
+    message: "TEXT NOT NULL"
+    threshold_value: "DECIMAL(15,6)"
+    actual_value: "DECIMAL(15,6)"
+    timestamp: "TIMESTAMP NOT NULL"
+    acknowledged: "BOOLEAN DEFAULT FALSE"
+    acknowledged_by: "VARCHAR(100)"
+    acknowledged_at: "TIMESTAMP"
+    created_at: "TIMESTAMP DEFAULT CURRENT_TIMESTAMP"
+  }
+  note: "Alert management system"
+}
+
+# Archive Tables
+samples_archive: |md
+  ## Samples Archive
+  **[Archive]**
+
+  Historical samples data (90+ days) for compliance
+|| {
+  shape: rectangle
+  style: {
+    fill: "#f5f5f5"
+    stroke: "#757575"
+    stroke-width: 2
+    stroke-dash: 5
+  }
+  tooltip: "Historical samples data (90+ days)"
+  fields: {
+    "*": "Same structure as samples table"
+  }
+  note: "Long-term storage for compliance"
+}
+
+events_archive: |md
+  ## Events Archive
+  **[Archive]**
+
+  Historical events data (90+ days) for compliance
+|| {
+  shape: rectangle
+  style: {
+    fill: "#f5f5f5"
+    stroke: "#757575"
+    stroke-width: 2
+    stroke-dash: 5
+  }
+  tooltip: "Historical events data (90+ days)"
+  fields: {
+    "*": "Same structure as events table"
+  }
+  note: "Long-term storage for compliance"
+}
+
+# Enhanced Relationships & Data Flow
+machines -> components: {
+  source-arrowhead: {
+    shape: none
+  }
+  target-arrowhead: {
+    shape: triangle
+  }
+  label: "contains"
+  style.stroke: "#1976d2"
+  style.stroke-width: 3
+}
+
+machines -> data_streams: {
+  source-arrowhead: {
+    shape: none
+  }
+  target-arrowhead: {
+    shape: triangle
+  }
+  label: "generates"
+  style.stroke: "#388e3c"
+  style.stroke-width: 3
+}
+
+components -> samples: {
+  source-arrowhead: {
+    shape: none
+  }
+  target-arrowhead: {
+    shape: triangle
+  }
+  label: "produces sensor data"
+  style.stroke: "#f57c00"
+  style.stroke-width: 3
+}
+
+components -> events: {
+  source-arrowhead: {
+    shape: none
+  }
+  target-arrowhead: {
+    shape: triangle
+  }
+  label: "triggers events"
+  style.stroke: "#c2185b"
+  style.stroke-width: 3
+}
+
+components -> conditions: {
+  source-arrowhead: {
+    shape: none
+  }
+  target-arrowhead: {
+    shape: triangle
+  }
+  label: "reports health status"
+  style.stroke: "#d32f2f"
+  style.stroke-width: 3
+}
+
+data_streams -> samples: {
+  source-arrowhead: {
+    shape: none
+  }
+  target-arrowhead: {
+    shape: triangle
+  }
+  label: "streams to"
+  style.stroke: "#388e3c"
+  style.stroke-width: 3
+}
+
+data_streams -> events: {
+  source-arrowhead: {
+    shape: none
+  }
+  target-arrowhead: {
+    shape: triangle
+  }
+  label: "streams to"
+  style.stroke: "#388e3c"
+  style.stroke-width: 3
+}
+
+data_streams -> conditions: {
+  source-arrowhead: {
+    shape: none
+  }
+  target-arrowhead: {
+    shape: triangle
+  }
+  label: "streams to"
+  style.stroke: "#388e3c"
+  style.stroke-width: 3
+}
+
+machines -> machine_status_summary: {
+  source-arrowhead: {
+    shape: none
+  }
+  target-arrowhead: {
+    shape: triangle
+  }
+  label: "aggregates to"
+  style.stroke: "#00796b"
+  style.stroke-width: 3
+}
+
+components -> component_alerts: {
+  source-arrowhead: {
+    shape: none
+  }
+  target-arrowhead: {
+    shape: triangle
+  }
+  label: "generates alerts"
+  style.stroke: "#ffa000"
+  style.stroke-width: 3
+}
+
+samples -> samples_archive: {
+  source-arrowhead: {
+    shape: none
+  }
+  target-arrowhead: {
+    shape: triangle
+  }
+  label: "archived to"
+  style.stroke-dash: 5
+  style.stroke: "#757575"
+  style.stroke-width: 2
+}
+
+events -> events_archive: {
+  source-arrowhead: {
+    shape: none
+  }
+  target-arrowhead: {
+    shape: triangle
+  }
+  label: "archived to"
+  style.stroke-dash: 5
+  style.stroke: "#757575"
+  style.stroke-width: 2
+}
+
+# Additional Performance Views
+performance_views: |md
+  ## Performance Views
+  **[Views]**
+
+  Materialized views for common queries
+|| {
+  shape: diamond
+  style: {
+    fill: "#e1f5fe"
+    stroke: "#0277bd"
+    stroke-width: 2
+  }
+  tooltip: "Materialized views for performance"
+  views: {
+    recent_machine_status: "Last 24h status for all machines"
+    component_performance: "Hourly component metrics"
+    alert_summary: "Unacknowledged alerts by severity"
+    data_quality: "Missing data detection"
+  }
+}
+
+# Data Flow Annotations
+data_flow: |md
+  ## Data Flow
+  **[Process]**
+
+  Data ingestion and processing pipeline
+|| {
+  shape: circle
+  style: {
+    fill: "#f1f8e9"
+    stroke: "#689f38"
+    stroke-width: 2
+  }
+  tooltip: "Data flow process"
+  steps: {
+    "1": "MTConnect XML → JSON conversion"
+    "2": "Data deduplication & validation"
+    "3": "Database insertion with constraints"
+    "4": "Real-time aggregation & alerting"
+    "5": "Archive old data (90+ days)"
+  }
+}

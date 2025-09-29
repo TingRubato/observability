@@ -11,13 +11,23 @@ toc: false
 This dashboard provides comprehensive monitoring of the Mazak VTC 300 machine with advanced 5-axis capabilities, asset management, and real-time operational insights.
 
 ```js
-// Load comprehensive VTC300 data
-const samplesData = FileAttachment("data/optimized/mazak_2_vtc_300/samples.csv").csv({typed: true});
-const eventsData = FileAttachment("data/optimized/mazak_2_vtc_300/events.csv").csv({typed: true});
-const conditionsData = FileAttachment("data/optimized/mazak_2_vtc_300/conditions.csv").csv({typed: true});
-const metadataData = FileAttachment("data/optimized/mazak_2_vtc_300/metadata.csv").csv({typed: true});
-const recentSamples = FileAttachment("data/optimized/mazak_2_vtc_300/recent/samples_recent.csv").csv({typed: true});
-const recentEvents = FileAttachment("data/optimized/mazak_2_vtc_300/recent/events_recent.csv").csv({typed: true});
+// Import database connection utilities
+import { createDatabaseConnection, loadDataWithFallback } from "./database-connection.js";
+
+// Load comprehensive VTC300 data from database
+const machineName = "mazak_2_vtc_300";
+
+// Get machine data from database
+const machineData = await loadDataWithFallback('machineData', machineName);
+const timeSeriesData = await loadDataWithFallback('timeSeries', machineName, 24); // 24 hours
+const recentSamples = await loadDataWithFallback('recentSamples', machineName, 1); // 1 hour
+const recentEvents = await loadDataWithFallback('recentEvents', machineName, 1); // 1 hour
+const recentConditions = await loadDataWithFallback('recentConditions', machineName, 1); // 1 hour
+
+// Process data for compatibility with existing code
+const samplesData = timeSeriesData.filter(d => d.data_type === 'sample');
+const eventsData = timeSeriesData.filter(d => d.data_type === 'event');
+const conditionsData = recentConditions;
 ```
 
 ```js

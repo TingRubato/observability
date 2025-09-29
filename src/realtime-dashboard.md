@@ -169,8 +169,6 @@ html`
 ## 📊 Real-Time Charts
 
 ```js
-import {Plot} from "@observablehq/plot";
-
 // Machine activity chart
 const activityData = (liveSummary.value || []).flatMap(m => [
   {machine: m.name, type: 'Samples', count: m.samplesLastHour, status: m.status},
@@ -201,7 +199,7 @@ activityChart
 ```
 
 ```js
-// Status distribution donut chart
+// Status distribution bar chart (replacing donut chart for better compatibility)
 const statusCounts = (liveSummary.value || []).reduce((acc, machine) => {
   acc[machine.status] = (acc[machine.status] || 0) + 1;
   return acc;
@@ -216,25 +214,20 @@ const statusData = Object.entries(statusCounts).map(([status, count]) => ({
 const statusChart = Plot.plot({
   title: "Machine Status Distribution",
   width: 400,
-  height: 400,
+  height: 300,
+  marginLeft: 80,
+  x: {label: "Count"},
+  y: {label: "Status"},
   color: {
     domain: ["Online", "Idle", "Offline"],
     range: ["#22c55e", "#f59e0b", "#ef4444"]
   },
   marks: [
-    Plot.arc(statusData, {
-      innerRadius: 60,
-      outerRadius: 140,
-      startAngle: 0,
-      endAngle: (d) => (d.count / (liveSummary.value || []).length) * 2 * Math.PI,
+    Plot.barX(statusData, {
+      x: "count",
+      y: "status",
       fill: "status",
       tip: true
-    }),
-    Plot.text(statusData, {
-      text: (d) => `${d.status}\n${d.count} (${d.percentage}%)`,
-      fontSize: 12,
-      fontWeight: "bold",
-      fill: "white"
     })
   ]
 });

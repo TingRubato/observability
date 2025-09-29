@@ -305,7 +305,7 @@ Adjust the spacing scale:
 See the example files for complete implementations:
 
 1. `component-examples.md` - Individual component demonstrations
-2. Machine dashboards: `mazak-vtc200.md`, `mazak-vtc300.md`, `mazak-350msy.md`
+2. Machine dashboards: `mazak-vtc200.md`, `mazak-vtc300-final.md`, `mazak-vtc300-enhanced.md`, `mazak-350msy.md`
 
 ## Tips for Best Results
 

@@ -4,19 +4,30 @@
   "scripts": {
     "clean": "rimraf src/.observablehq/cache",
     "build": "observable build",
-    "dev": "observable preview",
+    "dev": "concurrently \"npm run dev:frontend\" \"npm run dev:backend\"",
+    "dev:frontend": "observable preview",
+    "dev:backend": "./start-database-api.sh",
     "deploy": "observable deploy",
-    "observable": "observable"
+    "observable": "observable",
+    "db:start": "./start-database-api.sh",
+    "db:test": "cd src && node test-database-connection.js",
+    "db:install": "cd src && npm install"
   },
   "dependencies": {
     "@observablehq/framework": "^1.13.3",
     "@observablehq/plot": "^0.6.17",
+    "@playwright/test": "^1.55.1",
+    "cors": "^2.8.5",
     "d3-dsv": "^3.0.1",
     "d3-time-format": "^4.1.0",
+    "dotenv": "^16.3.1",
+    "express": "^4.18.2",
+    "node-fetch": "^2.7.0",
     "pg": "^8.11.3",
     "xml2js": "^0.6.2"
   },
   "devDependencies": {
+    "concurrently": "^9.2.1",
     "rimraf": "^5.0.5",
     "sass": "^1.89.2"
   },

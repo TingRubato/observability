@@ -83,7 +83,7 @@ toc: false
     <div class="card-modern__header">
       <h3 class="card-modern__title">Mazak VTC 300</h3>
       <div class="card-modern__actions">
-        <a href="./mazak-vtc300" class="card-modern__action" title="View Dashboard">
+        <a href="./mazak-vtc300-final" class="card-modern__action" title="View Dashboard">
           <i class="fas fa-external-link-alt"></i>
         </a>
       </div>
@@ -180,7 +180,7 @@ toc: false
     <h3><i class="fas fa-tachometer-alt"></i> Machine Dashboards</h3>
     <ul style="list-style: none; padding: 0;">
       <li><a href="./mazak-vtc200">Mazak VTC 200</a></li>
-      <li><a href="./mazak-vtc300">Mazak VTC 300</a></li>
+      <li><a href="./mazak-vtc300-final">Mazak VTC 300</a></li>
       <li><a href="./mazak-350msy">Mazak 350MSY (5-Axis)</a></li>
     </ul>
   </div>

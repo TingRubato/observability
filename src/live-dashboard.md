@@ -1,11 +1,14 @@
 # Live Manufacturing Dashboard
 
 ```js
-// Load data from our PostgreSQL database
-const machines = FileAttachment("data/loaders/machines.json").json();
-const machineSummary = FileAttachment("data/loaders/machine-summary.json").json();
-const recentConditions = FileAttachment("data/loaders/recent-conditions.json").json();
-const recentEvents = FileAttachment("data/loaders/recent-events.json").json();
+// Import database connection utilities
+import { createDatabaseConnection, loadDataWithFallback } from "./database-connection.js";
+
+// Load data from PostgreSQL database with fallback to files
+const machines = await loadDataWithFallback('machines');
+const machineSummary = await loadDataWithFallback('machineSummary');
+const recentConditions = await loadDataWithFallback('recentConditions');
+const recentEvents = await loadDataWithFallback('recentEvents');
 ```
 
 ```js
@@ -105,8 +108,6 @@ html`
 ## Machine Performance Charts
 
 ```js
-import {Plot} from "@observablehq/plot";
-
 // Activity by machine (last hour)
 const activityData = machineSummary.map(m => [
   {machine: m.name, type: 'Samples', count: m.samplesLastHour},
@@ -133,7 +134,7 @@ Plot.plot({
 ```
 
 ```js
-// Status distribution pie chart
+// Status distribution bar chart (replacing pie chart for better compatibility)
 const statusCounts = machineSummary.reduce((acc, machine) => {
   acc[machine.status] = (acc[machine.status] || 0) + 1;
   return acc;
@@ -147,20 +148,17 @@ const statusData = Object.entries(statusCounts).map(([status, count]) => ({
 Plot.plot({
   title: "Machine Status Distribution",
   width: 400,
-  height: 400,
+  height: 300,
+  marginLeft: 80,
+  x: {label: "Count"},
+  y: {label: "Status"},
+  color: {legend: true},
   marks: [
-    Plot.arc(statusData, {
-      innerRadius: 50,
-      outerRadius: 150,
-      startAngle: 0,
-      endAngle: (d) => (d.count / machineSummary.length) * 2 * Math.PI,
+    Plot.barX(statusData, {
+      x: "count",
+      y: "status",
       fill: "status",
       tip: true
-    }),
-    Plot.text(statusData, {
-      text: (d) => `${d.status}\n${d.count}`,
-      fontSize: 12,
-      fontWeight: "bold"
     })
   ]
 })

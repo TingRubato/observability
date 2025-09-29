@@ -4,109 +4,414 @@ title: Production Overview
 toc: false
 ---
 
-# Production Overview Dashboard 📊
+# Machine Status Dashboard 🏭
+
+<!-- Custom styling for improved layout -->
+
+```html
+<style>
+.machine-overview {
+  margin: 2rem 0;
+}
+
+.overview-header {
+  text-align: center;
+  margin-bottom: 2rem;
+  padding: 1.5rem;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  border-radius: 12px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.overview-header h2 {
+  margin: 0 0 0.5rem 0;
+  font-size: 2rem;
+  font-weight: 700;
+}
+
+.overview-header p {
+  margin: 0;
+  opacity: 0.9;
+  font-size: 1.1rem;
+}
+
+.machine-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 1.5rem;
+  margin-bottom: 3rem;
+}
+
+.machine-card {
+  background: white;
+  border-radius: 16px;
+  padding: 1.5rem;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  border: 2px solid transparent;
+  transition: all 0.3s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+.machine-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 4px;
+  background: var(--status-color, #e5e7eb);
+}
+
+.machine-card.running::before { background: #22c55e; }
+.machine-card.idle::before { background: #f59e0b; }
+.machine-card.maintenance::before { background: #ef4444; }
+.machine-card.setup::before { background: #3b82f6; }
+.machine-card.error::before { background: #dc2626; }
+
+.machine-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+}
+
+.machine-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+}
+
+.machine-header h3 {
+  margin: 0;
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: #1f2937;
+}
+
+.status-indicator {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  box-shadow: 0 0 8px rgba(0, 0, 0, 0.2);
+}
+
+.machine-status {
+  text-align: center;
+  margin-bottom: 1.5rem;
+}
+
+.status-text {
+  font-size: 1.5rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.machine-metrics {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.75rem;
+}
+
+.metric {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.metric-label {
+  font-size: 0.75rem;
+  color: #6b7280;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.metric-value {
+  font-size: 0.9rem;
+  color: #1f2937;
+  font-weight: 600;
+}
+
+.chart-section {
+  margin: 3rem 0;
+}
+
+.chart-section h3 {
+  text-align: center;
+  margin-bottom: 2rem;
+  font-size: 1.5rem;
+  color: #1f2937;
+  font-weight: 600;
+}
+
+.chart-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+  gap: 2rem;
+  margin-top: 2rem;
+}
+
+.individual-chart {
+  background: white;
+  border-radius: 12px;
+  padding: 1.5rem;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  border: 1px solid #e5e7eb;
+}
+
+@media (max-width: 768px) {
+  .machine-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .chart-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .machine-metrics {
+    grid-template-columns: 1fr;
+  }
+}
+</style>
+```
 
 <!-- Load and transform the data -->
 
 ```js
-// Generate sample production data for demonstration
-const launches = [
-  {date: new Date("2024-01-01"), state: "Running", stateId: "US", family: "Production Line A"},
-  {date: new Date("2024-01-02"), state: "Running", stateId: "US", family: "Production Line A"},
-  {date: new Date("2024-01-03"), state: "Maintenance", stateId: "RU", family: "Production Line B"},
-  {date: new Date("2024-01-04"), state: "Running", stateId: "CN", family: "Production Line C"},
-  {date: new Date("2024-01-05"), state: "Running", stateId: "US", family: "Production Line A"},
-  // Add more sample data...
-].concat(Array.from({length: 50}, (_, i) => ({
-  date: new Date(2024, 0, i + 6),
-  state: ["Running", "Idle", "Maintenance"][Math.floor(Math.random() * 3)],
-  stateId: ["US", "RU", "CN"][Math.floor(Math.random() * 3)],
-  family: ["Production Line A", "Production Line B", "Production Line C"][Math.floor(Math.random() * 3)]
-})));
+// Import required libraries
+import * as Plot from "@observablehq/plot";
+
+// Generate sample machine data for demonstration
+const machines = [
+  {id: "MAZAK-350MSY", name: "MAZAK 350MSY", type: "CNC Mill", location: "Shop Floor A"},
+  {id: "MAZAK-VTC200", name: "MAZAK VTC200", type: "Vertical Center", location: "Shop Floor B"},
+  {id: "MAZAK-VTC300", name: "MAZAK VTC300", type: "Vertical Center", location: "Shop Floor C"},
+  {id: "HAAS-VF2", name: "HAAS VF2", type: "CNC Mill", location: "Shop Floor A"},
+  {id: "FANUC-Robot", name: "FANUC Robot", type: "Industrial Robot", location: "Assembly Line"}
+];
+
+// Generate machine status data over time
+const machineData = machines.flatMap(machine =>
+  Array.from({length: 30}, (_, i) => ({
+    machineId: machine.id,
+    machineName: machine.name,
+    machineType: machine.type,
+    location: machine.location,
+    date: new Date(2024, 0, i + 1),
+    state: ["Running", "Idle", "Maintenance", "Setup", "Error"][Math.floor(Math.random() * 5)],
+    temperature: Math.round(20 + Math.random() * 15), // 20-35°C
+    vibration: Math.round(Math.random() * 10), // 0-10 scale
+    efficiency: Math.round(60 + Math.random() * 40) // 60-100%
+  }))
+);
+
+// Define chart functions
+function machineStatusTimeline(data, {width} = {}) {
+  return Plot.plot({
+    width,
+    height: 300,
+    color: {
+      type: "categorical",
+      domain: ["Running", "Idle", "Maintenance", "Setup", "Error"],
+      range: ["#22c55e", "#f59e0b", "#ef4444", "#3b82f6", "#dc2626"]
+    },
+    marks: [
+      Plot.line(data, {
+        x: "date",
+        y: "machineName",
+        stroke: "state",
+        strokeWidth: 2
+      }),
+      Plot.dot(data, {
+        x: "date",
+        y: "machineName",
+        fill: "state",
+        r: 4
+      })
+    ],
+    x: {label: "Date"},
+    y: {label: "Machine"}
+  });
+}
+
+function machineStatusChart(data, {width} = {}) {
+  return Plot.plot({
+    width,
+    height: 300,
+    color: {
+      type: "categorical",
+      domain: ["Running", "Idle", "Maintenance", "Setup", "Error"],
+      range: ["#22c55e", "#f59e0b", "#ef4444", "#3b82f6", "#dc2626"]
+    },
+    marks: [
+      Plot.bar(data, Plot.groupX({y: "count"}, {
+        x: "machineName",
+        fill: "state"
+      }))
+    ],
+    x: {label: "Machine"},
+    y: {label: "Count"}
+  });
+}
+
+function individualMachineChart(machineId, data, {width} = {}) {
+  const machineData = data.filter(d => d.machineId === machineId);
+  return Plot.plot({
+    width,
+    height: 200,
+    color: {
+      type: "categorical",
+      domain: ["Running", "Idle", "Maintenance", "Setup", "Error"],
+      range: ["#22c55e", "#f59e0b", "#ef4444", "#3b82f6", "#dc2626"]
+    },
+    marks: [
+      Plot.line(machineData, {
+        x: "date",
+        y: "efficiency",
+        stroke: "state",
+        strokeWidth: 2
+      }),
+      Plot.dot(machineData, {
+        x: "date",
+        y: "efficiency",
+        fill: "state",
+        r: 3
+      })
+    ],
+    x: {label: "Date"},
+    y: {label: "Efficiency %"}
+  });
+}
 ```
 
-<!-- A shared color scale for consistency, sorted by the number of launches -->
+
+<!-- Machine status summary cards -->
 
 ```js
-const color = Plot.scale({
-  color: {
-    type: "categorical",
-    domain: d3.groupSort(launches, (D) => -D.length, (d) => d.state).filter((d) => d !== "Other"),
-    unknown: "var(--theme-foreground-muted)"
-  }
+// Get latest status for each machine
+const latestMachineStatus = machines.map(machine => {
+  const latestData = machineData.filter(d => d.machineId === machine.id).slice(-1)[0];
+  const statusColors = {
+    "Running": "#22c55e",
+    "Idle": "#f59e0b",
+    "Maintenance": "#ef4444",
+    "Setup": "#3b82f6",
+    "Error": "#dc2626"
+  };
+  return {
+    ...machine,
+    currentState: latestData ? latestData.state : 'Unknown',
+    currentTemp: latestData ? latestData.temperature : null,
+    stateColor: latestData ? statusColors[latestData.state] : '#666',
+    efficiency: latestData ? latestData.efficiency : null,
+    vibration: latestData ? latestData.vibration : null
+  };
 });
-```
 
-<!-- Cards with big numbers -->
+// Create machine cards HTML using a function that returns HTML string
+function createMachineCards() {
+  let cardsHTML = `
+  <div class="machine-overview">
+    <div class="overview-header">
+      <h2>🏭 Machine Status Overview</h2>
+      <p>Real-time status of all production machines</p>
+    </div>
 
-<div class="grid grid-cols-4">
-  <div class="card">
-    <h2>Production Line A 🏭</h2>
-    <span class="big">${launches.filter((d) => d.family === "Production Line A").length.toLocaleString("en-US")}</span>
-  </div>
-  <div class="card">
-    <h2>Production Line B ⚙️</h2>
-    <span class="big">${launches.filter((d) => d.family === "Production Line B").length.toLocaleString("en-US")}</span>
-  </div>
-  <div class="card">
-    <h2>Production Line C 🔧</h2>
-    <span class="big">${launches.filter((d) => d.family === "Production Line C").length.toLocaleString("en-US")}</span>
-  </div>
-  <div class="card">
-    <h2>Total Output</h2>
-    <span class="big">${launches.length.toLocaleString("en-US")}</span>
-  </div>
-</div>
+    <div class="machine-grid">
+  `;
 
-<!-- Plot of launch history -->
-
-```js
-function launchTimeline(data, {width} = {}) {
-  return Plot.plot({
-    title: "Production activity over time",
-    width,
-    height: 300,
-    y: {grid: true, label: "Production Events"},
-    color: {...color, legend: true},
-    marks: [
-      Plot.rectY(data, Plot.binX({y: "count"}, {x: "date", fill: "state", interval: "day", tip: true})),
-      Plot.ruleY([0])
-    ]
+  latestMachineStatus.forEach(machine => {
+    cardsHTML += `
+        <div class="machine-card ${machine.currentState.toLowerCase()}">
+          <div class="machine-header">
+            <h3>${machine.name}</h3>
+            <div class="status-indicator" style="background-color: ${machine.stateColor}"></div>
+          </div>
+          <div class="machine-status">
+            <span class="status-text" style="color: ${machine.stateColor}">${machine.currentState}</span>
+          </div>
+          <div class="machine-metrics">
+            <div class="metric">
+              <span class="metric-label">Type</span>
+              <span class="metric-value">${machine.type}</span>
+            </div>
+            <div class="metric">
+              <span class="metric-label">Location</span>
+              <span class="metric-value">${machine.location}</span>
+            </div>
+            <div class="metric">
+              <span class="metric-label">Temperature</span>
+              <span class="metric-value">${machine.currentTemp ? machine.currentTemp + '°C' : 'N/A'}</span>
+            </div>
+            <div class="metric">
+              <span class="metric-label">Efficiency</span>
+              <span class="metric-value">${machine.efficiency ? machine.efficiency + '%' : 'N/A'}</span>
+            </div>
+          </div>
+        </div>
+    `;
   });
+
+  cardsHTML += `
+    </div>
+  </div>
+  `;
+
+  return cardsHTML;
 }
+
+const machineCardsHTML = createMachineCards();
+
+// Output the machine cards HTML
+machineCardsHTML
 ```
 
-<div class="grid grid-cols-1">
+<!-- Analytics Section -->
+
+<div class="chart-section">
+  <h3>📊 Machine Analytics</h3>
+  
   <div class="card">
-    ${resize((width) => launchTimeline(launches, {width}))}
+    <h4>Machine Status Over Time</h4>
+    ${resize((width) => machineStatusTimeline(machineData, {width}))}
   </div>
 </div>
 
-<!-- Plot of launch vehicles -->
+<div class="card">
+  <h4>Status Distribution by Machine</h4>
+  ${resize((width) => machineStatusChart(machineData, {width}))}
+</div>
 
-```js
-function vehicleChart(data, {width}) {
-  return Plot.plot({
-    title: "Production by line",
-    width,
-    height: 300,
-    marginTop: 0,
-    marginLeft: 50,
-    x: {grid: true, label: "Production Events"},
-    y: {label: null},
-    color: {...color, legend: true},
-    marks: [
-      Plot.rectX(data, Plot.groupY({x: "count"}, {y: "family", fill: "state", tip: true, sort: {y: "-x"}})),
-      Plot.ruleX([0])
-    ]
-  });
-}
-```
+<!-- Individual Machine Analysis -->
 
-<div class="grid grid-cols-1">
-  <div class="card">
-    ${resize((width) => vehicleChart(launches, {width}))}
+<div class="chart-section">
+  <h3>🔍 Individual Machine Analysis</h3>
+  <p>Detailed status history for each machine</p>
+  
+  <div class="chart-grid">
+    <div class="individual-chart">
+      <h4>MAZAK 350MSY</h4>
+      ${resize((width) => individualMachineChart("MAZAK-350MSY", machineData, {width}))}
+    </div>
+    <div class="individual-chart">
+      <h4>MAZAK VTC200</h4>
+      ${resize((width) => individualMachineChart("MAZAK-VTC200", machineData, {width}))}
+    </div>
+    <div class="individual-chart">
+      <h4>MAZAK VTC300</h4>
+      ${resize((width) => individualMachineChart("MAZAK-VTC300", machineData, {width}))}
+    </div>
+    <div class="individual-chart">
+      <h4>HAAS VF2</h4>
+      ${resize((width) => individualMachineChart("HAAS-VF2", machineData, {width}))}
+    </div>
+    <div class="individual-chart">
+      <h4>FANUC Robot</h4>
+      ${resize((width) => individualMachineChart("FANUC-Robot", machineData, {width}))}
+    </div>
   </div>
 </div>
 
-Data: Sample manufacturing production data for demonstration purposes
+Data: Sample machine status data for demonstration purposes
